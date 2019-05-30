@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Project1</string>
+    <string name="prompt_user_name">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Log In</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="logoDis">Logo</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email completions."</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="log_in_page">Log In page</string>
+    <string name="register_page">Register page</string>
+    <string name="re_enter_password">Re-enter Password</string>
+</resources>
