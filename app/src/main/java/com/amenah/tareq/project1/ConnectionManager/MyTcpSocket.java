@@ -100,12 +100,17 @@ public class MyTcpSocket extends Thread {
             while(connected){
                 System.out.println(socket.isConnected());
                 try {
+                    Thread.sleep(2000);
                     byte[] l = new byte[4];
                     reader.read(l,0,4);
-                    int messageLength = byteArrayToInt(l);
+
+                    int messageLength = 0;
+                    Thread.sleep(1000);
+                    messageLength = byteArrayToInt(l);
+
                     System.out.println("Message received size =  " + messageLength);
                     if(messageLength>0){
-
+                        System.out.println("Message received size =  " + messageLength);
                         byte[] message = new byte[messageLength];
                         reader.read(message,0,messageLength);
                         String messageAsString = new String(message, charsetName);

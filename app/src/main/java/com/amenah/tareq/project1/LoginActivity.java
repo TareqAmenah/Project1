@@ -162,4 +162,8 @@ public class LoginActivity extends AppCompatActivity {
         Toast.makeText(this,message,Toast.LENGTH_LONG).show();
     }
 
+    public void toSettings(View view) {
+        Intent goToSettings = new Intent(this, ConnectionSettings.class);
+        startActivity(goToSettings);
+    }
 }

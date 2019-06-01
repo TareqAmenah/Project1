@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.amenah.tareq.project1.ConnectionManager.Constants;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Image;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Text;
 import com.amenah.tareq.project1.ConnectionManager.MyTcpSocket;
@@ -44,7 +45,9 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         //mivImageFromServer = findViewById(R.id.image_from_server);
 
         String token = getIntent().getStringExtra("Token");
-        socket = new MyTcpSocket("192.168.1.6",3001, token, this);
+        String IPAddress = Constants.IPAddress;
+        int portNumber = Constants.socketPortNumber;
+        socket = new MyTcpSocket(IPAddress, portNumber, token, this);
 
     }
 

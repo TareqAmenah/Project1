@@ -6,16 +6,23 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class RetrofitServiceManager {
 
 
+    public static Retrofit retrofit;
+    public static ApiServece retrofitManager;
     //TODO: enter the url
-    private static final String BASE_URL = "http://192.168.1.6:8080";
+    private static String BASE_URL;
 
+    public static void set(String url) {
+        BASE_URL = url;
 
-    public static Retrofit retrofit  = new Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build();
+        retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
-    public static  ApiServece retrofitManager = retrofit.create(ApiServece.class);
+        retrofitManager = retrofit.create(ApiServece.class);
+
+    }
+
 
 
 }
