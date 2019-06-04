@@ -14,4 +14,5 @@
     <string name="log_in_page">Log In page</string>
     <string name="register_page">Register page</string>
     <string name="re_enter_password">Re-enter Password</string>
+    <string name="title_activity_chat2">ChatActivity2</string>
 </resources>

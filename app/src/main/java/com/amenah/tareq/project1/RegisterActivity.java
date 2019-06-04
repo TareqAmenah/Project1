@@ -96,7 +96,6 @@ public class RegisterActivity extends AppCompatActivity {
                 Log.v("Request response",response.toString());
 
                 mRegisterLoader.smoothToHide();
-                mRegisterLoader.setVisibility(View.INVISIBLE);
                 mBlur.setVisibility(View.INVISIBLE);
 
                 int resultCode = response.code();
@@ -127,6 +126,9 @@ public class RegisterActivity extends AppCompatActivity {
                 //TODO: implement onFailure method of sign up request
                 Log.e("****************",t.toString());
                 showToast("Connection Error!\nPlease retry");
+                mRegisterLoader.smoothToHide();
+                mBlur.setVisibility(View.INVISIBLE);
+
             }
         });
 

@@ -15,7 +15,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".ConnectionSettings"></activity>
+        <activity
+            android:name=".ChatActivity2"
+            android:label="@string/title_activity_chat2"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity android:name=".ConnectionSettings" />
         <activity android:name=".ChatActivity" />
         <activity
             android:name=".RegisterActivity"

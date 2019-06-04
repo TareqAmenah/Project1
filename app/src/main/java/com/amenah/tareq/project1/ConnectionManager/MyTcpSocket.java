@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class MyTcpSocket extends Thread {
     
@@ -56,8 +56,7 @@ public class MyTcpSocket extends Thread {
         this.chatActivityControler = chatActivityControler;
         this.portNumber = portNumber;
         this.token = token;
-        this.start();
-        
+
     }
     
     public static void sendBinaryFile(byte[] file){
@@ -82,8 +81,9 @@ public class MyTcpSocket extends Thread {
     
     public static void sendString(String s){
         try {
-            writer.write(intToByteArray(s.length()));
-            writer.write(stringToByteArray(s,s.length()));
+            byte[] b = stringToByteArray(s, s.length());
+            writer.write(intToByteArray(b.length));
+            writer.write(b);
             System.out.println("String sent successfully ");
         } catch (IOException e) {
             System.err.println("Error while sending String message ... !");
@@ -91,6 +91,59 @@ public class MyTcpSocket extends Thread {
         }
     }
 
+    public static byte[] stringToByteArray(String str, int numBytes) {
+        byte[] stringBytes = null;
+        int i = numBytes;
+        try {
+            stringBytes = str.getBytes(StandardCharsets.UTF_8);
+            Log.v("*****************", new String(stringBytes, StandardCharsets.UTF_8));
+            return stringBytes;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return stringBytes;
+        }
+//        byte [] bytes = new byte[numBytes];
+//
+//        int len = stringBytes.length;
+//        if (len > numBytes) {
+//            len = numBytes;
+//        }
+//
+//        for (int i=0;i<len;i++) {
+//            bytes[i] = stringBytes[i];
+//        }
+//
+//        Log.v("*****************", new String (bytes, StandardCharsets.UTF_8));
+//
+//        return bytes;
+    }
+
+    public void closeConnection() {
+        try {
+            reader.close();
+            writer.close();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static byte[] intToByteArray(int a) {
+        return new byte[]{
+                (byte) (a & 0xFF),
+                (byte) ((a >> 8) & 0xFF),
+                (byte) ((a >> 16) & 0xFF),
+                (byte) ((a >> 24) & 0xFF)
+        };
+    }
+
+    public static int byteArrayToInt(byte[] b) {
+        return b[0] & 0xFF |
+                (b[1] & 0xFF) << 8 |
+                (b[2] & 0xFF) << 16 |
+                (b[3] & 0xFF) << 24;
+    }
 
     class ServerListener extends Thread{
         boolean connected = socket.isConnected();
@@ -100,12 +153,11 @@ public class MyTcpSocket extends Thread {
             while(connected){
                 System.out.println(socket.isConnected());
                 try {
-                    Thread.sleep(2000);
                     byte[] l = new byte[4];
                     reader.read(l,0,4);
 
                     int messageLength = 0;
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                     messageLength = byteArrayToInt(l);
 
                     System.out.println("Message received size =  " + messageLength);
@@ -125,7 +177,7 @@ public class MyTcpSocket extends Thread {
                                     chatActivityControler.addTextMessageTolayout("server",jsonMessage.getString("message"));
                                     break;
 
-                                case "BinaryFile":
+                                case "Image":
                                     byte[] imageSizeBytes = new byte[4];
                                     reader.read(imageSizeBytes,0,4);
                                     int imageSizeInt = byteArrayToInt(imageSizeBytes);
@@ -133,16 +185,40 @@ public class MyTcpSocket extends Thread {
                                     byte[] imageBytes = new byte[imageSizeInt];
                                     reader.read(imageBytes,0,imageSizeInt);
 
-                                    String fileName = "from"+jsonMessage.getString("sender") + jsonMessage.getString("extension");
-                                    String filePath = Environment.getExternalStorageDirectory() + File.separator + fileName;
-                                    File file = new File(filePath);
+                                    String imageName = "from" + jsonMessage.getString("sender") + jsonMessage.getString("extension");
+                                    String imagePath = Environment.getExternalStorageDirectory() + File.separator + imageName;
+                                    File image = new File(imagePath);
 
-                                    OutputStream outputStream = new FileOutputStream(file);
+                                    OutputStream outputStream = new FileOutputStream(image);
                                     outputStream.write(imageBytes);
 
                                     outputStream.close();
 
-                                    chatActivityControler.addImageMessageToLayout(jsonMessage.getString("sender"),filePath);
+                                    chatActivityControler.addImageMessageToLayout(jsonMessage.getString("sender"), imagePath);
+
+                                    break;
+
+
+                                case "BinaryFile":
+                                    byte[] fileSizeBytes = new byte[4];
+                                    reader.read(fileSizeBytes, 0, 4);
+                                    int fileSizeInt = byteArrayToInt(fileSizeBytes);
+                                    Log.v("************", "received image size: " + fileSizeInt);
+                                    byte[] fileBytes = new byte[fileSizeInt];
+                                    reader.read(fileBytes, 0, fileSizeInt);
+
+                                    String fileName = "from" + jsonMessage.getString("sender") + "asBinaryFile" + jsonMessage.getString("extension");
+                                    String filePath = Environment.getExternalStorageDirectory() + File.separator + fileName;
+                                    File file = new File(filePath);
+
+
+                                    OutputStream outputStream1 = new FileOutputStream(file);
+                                    outputStream1.write(fileBytes);
+
+                                    outputStream1.close();
+
+
+
 
                                     break;
 
@@ -154,7 +230,7 @@ public class MyTcpSocket extends Thread {
 
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            Log.e("*****************","conn't parsing the jcon");
+                            Log.e("*****************", "can't parsing the json");
                         }
 
 
@@ -170,49 +246,10 @@ public class MyTcpSocket extends Thread {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                
+
             }
             System.out.println("<<<<< Socket disconnected ... ! >>>>>");
-    
         }
     }
-    
-    
-    public static byte[] stringToByteArray(String str, int numBytes) {
-        byte[] stringBytes = null;
-        try {
-            stringBytes = str.getBytes(Charset.forName("UTF-8"));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return stringBytes;
-        }
-        byte [] bytes = new byte[numBytes];
-        
-        int len = stringBytes.length;
-        if (len > numBytes) {
-            len = numBytes;
-        }
-        
-        for (int i=0;i<len;i++) {
-            bytes[i] = stringBytes[i];
-        }
-        
-        return bytes;
-    }
-    
-    public static byte[] intToByteArray(int a) {
-        return new byte[] {
-                (byte) (a & 0xFF),
-                (byte) ((a >> 8) & 0xFF),
-                (byte) ((a >> 16) & 0xFF),
-                (byte) ((a >> 24) & 0xFF)
-        };
-    }
-    
-    public static int byteArrayToInt(byte[] b) {
-        return   b[0] & 0xFF |
-                (b[1] & 0xFF) << 8 |
-                (b[2] & 0xFF) << 16 |
-                (b[3] & 0xFF) << 24;
-    }
+
 }

@@ -10,12 +10,14 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amenah.tareq.project1.ConnectionManager.Constants;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Image;
@@ -31,6 +33,8 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
     LinearLayout massegesLayout;
     ImageView mivImageFromServer;
 
+    String receiverName;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,10 +48,15 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         massegesLayout = findViewById(R.id.massagesLayout);
         //mivImageFromServer = findViewById(R.id.image_from_server);
 
+
         String token = getIntent().getStringExtra("Token");
+        receiverName = getIntent().getStringExtra("ReceiverName");
         String IPAddress = Constants.IPAddress;
         int portNumber = Constants.socketPortNumber;
+
+
         socket = new MyTcpSocket(IPAddress, portNumber, token, this);
+        socket.start();
 
     }
 
@@ -57,7 +66,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 
         String s = metMessage.getText().toString();
         if(s != ""){
-            new Event_Text("tareq",s).sendMessage();
+            new Event_Text(receiverName, s).sendMessage();
         }
 
         metMessage.setText("");
@@ -86,8 +95,6 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
             messageBubble = messageInflater.inflate(R.layout.their_message,null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
             messageText.setText(message);
-            TextView senderName = messageBubble.findViewById(R.id.name);
-            senderName.setText(sender);
 
 
         }
@@ -121,8 +128,6 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 
         }else {
             messageBubble = messageInflater.inflate(R.layout.their_message,null);
-            TextView senderName = messageBubble.findViewById(R.id.name);
-            senderName.setText(sender);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
             messageText.setText("This is image:");
             ImageView image = messageBubble.findViewById(R.id.message_image);
@@ -166,7 +171,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
                 int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
                 String picturePath = cursor.getString(idx);
 
-                new Event_Image("tareq",picturePath).sendMessage();
+                new Event_Image(receiverName, picturePath).sendMessage();
 
                 addImageMessageToLayout("me",picturePath);
 
@@ -204,4 +209,10 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 //    }
 
 
+    @Override
+    protected void onDestroy() {
+        socket.closeConnection();
+        Toast.makeText(this, "Socket connection closed!", Toast.LENGTH_LONG).show();
+        super.onDestroy();
+    }
 }

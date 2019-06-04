@@ -19,7 +19,7 @@ public abstract class Message {
         System.out.println("Sending message ....");
         
         //Send Binary file
-        if(this.type == "Image"){
+        if (this.type == "Image" || this.type == "BinaryFile") {
             //TODO send Binary files
             MyTcpSocket.sendJson(this.getJson());
             MyTcpSocket.sendBinaryFile(this.getBytes());

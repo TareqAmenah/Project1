@@ -26,6 +26,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText mUsername;
     private EditText mPassword;
+    private EditText mReceiverName;
     FrameLayout mBlur;
     AVLoadingIndicatorView mLoginLoader;
     Button mLogin;
@@ -38,6 +39,7 @@ public class LoginActivity extends AppCompatActivity {
 
         mPassword = findViewById(R.id.password);
         mUsername = findViewById(R.id.user_name);
+        mReceiverName = findViewById(R.id.receiver_name);
         mLoginLoader = findViewById(R.id.login_loader);
         mBlur = findViewById(R.id.background_blur_login);
         mLogin = findViewById(R.id.sign_in);
@@ -69,7 +71,7 @@ public class LoginActivity extends AppCompatActivity {
             ApiServece retrofitManager = RetrofitServiceManager.retrofitManager;
 
             /* ********************* reference to static will bind the activity from destroy? *********************************************************** */
-            //ApiServece service = RetrofitServiceManager.retrofitManager;
+        //ApiService service = RetrofitServiceManager.retrofitManager;
 
             retrofitManager.login(user).enqueue(new Callback<StanderResponse>() {
                 @Override
@@ -77,7 +79,6 @@ public class LoginActivity extends AppCompatActivity {
                     //TODO: implement onResponse method of log in request
                     Log.v("Request response",response.toString());
                     mLoginLoader.hide();
-                    //mLoginLoader.setVisibility(View.INVISIBLE);
                     mBlur.setVisibility(View.INVISIBLE);
                     mUsername.setText("");
                     mPassword.setText("");
@@ -97,7 +98,8 @@ public class LoginActivity extends AppCompatActivity {
                             }else{
                                 JsonObject responseData = (JsonObject) response.body().getData();
                                 String token = responseData.get("token").getAsString();
-                                acceptedLogin(username,token);
+                                String receiverName = mReceiverName.getText().toString();
+                                acceptedLogin(username, receiverName, token);
                                 break;
 
                             }
@@ -114,6 +116,8 @@ public class LoginActivity extends AppCompatActivity {
                     //TODO: implement onFailure method of log in request
                     Log.e("***********************",t.toString());
                     showToast("Connection Error!\nPlease retry");
+                    mLoginLoader.hide();
+                    mBlur.setVisibility(View.INVISIBLE);
 
                 }
             });
@@ -151,10 +155,11 @@ public class LoginActivity extends AppCompatActivity {
         showToast("Wrong user details!");
     }
 
-    private void acceptedLogin(String username, String token){
+    private void acceptedLogin(String username, String receiverName, String token) {
         showToast("Welcome " + username + " ^_^");
-        Intent goToChatActivity = new Intent(LoginActivity.this,ChatActivity.class);
+        Intent goToChatActivity = new Intent(LoginActivity.this, ChatActivity2.class);
         goToChatActivity.putExtra("Token",token);
+        goToChatActivity.putExtra("ReceiverName", receiverName);
         startActivity(goToChatActivity);
     }
 

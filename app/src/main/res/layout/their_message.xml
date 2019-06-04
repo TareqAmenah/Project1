@@ -16,24 +16,14 @@
         android:layout_width="34dp"
         android:layout_height="34dp" />
 
-    <TextView
-        android:id="@+id/name"
-        android:layout_marginLeft="8dp"
-        android:layout_toRightOf="@id/avatar"
-        android:layout_alignTop="@id/avatar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingBottom="4dp"
-        android:text="Rose"/>
-
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/name"
-        android:layout_alignLeft="@+id/name"
+        android:layout_marginStart="8dp"
         android:background="@drawable/their_message"
         android:orientation="vertical"
+        android:layout_toRightOf="@id/avatar"
         android:paddingHorizontal="8dp"
         android:paddingVertical="8dp"
         android:padding="12dp">
