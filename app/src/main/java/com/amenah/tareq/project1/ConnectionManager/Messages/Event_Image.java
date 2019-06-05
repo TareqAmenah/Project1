@@ -49,7 +49,7 @@ public class Event_Image extends Message {
     @Override
     public byte[] getBytes() {
 
-        Bitmap bitMap = getBitmap(filePath, 2);
+        Bitmap bitMap = getBitmap(filePath, 1);
         return getBytesFromBitmap(bitMap);
     }
 

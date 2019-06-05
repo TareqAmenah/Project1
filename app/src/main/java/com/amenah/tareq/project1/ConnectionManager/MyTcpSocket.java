@@ -1,20 +1,17 @@
 package com.amenah.tareq.project1.ConnectionManager;
 
-import android.os.Environment;
 import android.util.Log;
 
 import com.amenah.tareq.project1.ChatActivityControler;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Authentication;
+import com.amenah.tareq.project1.StorageManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
@@ -71,14 +68,14 @@ public class MyTcpSocket extends Thread {
     }
 
     public static void sendJson(JSONObject json){
-        
+
         //TODO send json message
         sendString(json.toString());
         System.out.println("Json sent successfully ");
-    
+
     }
-    
-    
+
+
     public static void sendString(String s){
         try {
             byte[] b = stringToByteArray(s, s.length());
@@ -127,6 +124,8 @@ public class MyTcpSocket extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        Log.v("**************", "Socket connection closed");
     }
 
     public static byte[] intToByteArray(int a) {
@@ -146,9 +145,9 @@ public class MyTcpSocket extends Thread {
     }
 
     class ServerListener extends Thread{
-        boolean connected = socket.isConnected();
         @Override
         public void run() {
+            boolean connected = socket.isConnected();
             System.out.println("Listening to server ....");
             while(connected){
                 System.out.println(socket.isConnected());
@@ -157,10 +156,9 @@ public class MyTcpSocket extends Thread {
                     reader.read(l,0,4);
 
                     int messageLength = 0;
-                    Thread.sleep(100);
                     messageLength = byteArrayToInt(l);
+                    Thread.sleep(500);
 
-                    System.out.println("Message received size =  " + messageLength);
                     if(messageLength>0){
                         System.out.println("Message received size =  " + messageLength);
                         byte[] message = new byte[messageLength];
@@ -174,7 +172,7 @@ public class MyTcpSocket extends Thread {
                             switch (jsonMessage.getString("type")){
 
                                 case "Text":
-                                    chatActivityControler.addTextMessageTolayout("server",jsonMessage.getString("message"));
+                                    chatActivityControler.addTextMessageToLayout("server", jsonMessage.getString("message"));
                                     break;
 
                                 case "Image":
@@ -185,16 +183,17 @@ public class MyTcpSocket extends Thread {
                                     byte[] imageBytes = new byte[imageSizeInt];
                                     reader.read(imageBytes,0,imageSizeInt);
 
-                                    String imageName = "from" + jsonMessage.getString("sender") + jsonMessage.getString("extension");
-                                    String imagePath = Environment.getExternalStorageDirectory() + File.separator + imageName;
-                                    File image = new File(imagePath);
+                                    StorageManager.saveImage(imageBytes, jsonMessage.getString("sender"), jsonMessage.getString("extension"));
+//                                    String imageName = "from" + jsonMessage.getString("sender") + jsonMessage.getString("extension");
+//                                    String imagePath = Environment.getExternalStorageDirectory() + File.separator + imageName;
+//                                    File image = new File(imagePath);
+//
+//                                    OutputStream outputStream = new FileOutputStream(image);
+//                                    outputStream.write(imageBytes);
+//
+//                                    outputStream.close();
 
-                                    OutputStream outputStream = new FileOutputStream(image);
-                                    outputStream.write(imageBytes);
-
-                                    outputStream.close();
-
-                                    chatActivityControler.addImageMessageToLayout(jsonMessage.getString("sender"), imagePath);
+                                    //chatActivityControler.addImageMessageToLayout(jsonMessage.getString("sender"), imagePath);
 
                                     break;
 
@@ -207,23 +206,20 @@ public class MyTcpSocket extends Thread {
                                     byte[] fileBytes = new byte[fileSizeInt];
                                     reader.read(fileBytes, 0, fileSizeInt);
 
-                                    String fileName = "from" + jsonMessage.getString("sender") + "asBinaryFile" + jsonMessage.getString("extension");
-                                    String filePath = Environment.getExternalStorageDirectory() + File.separator + fileName;
-                                    File file = new File(filePath);
-
-
-                                    OutputStream outputStream1 = new FileOutputStream(file);
-                                    outputStream1.write(fileBytes);
-
-                                    outputStream1.close();
-
-
-
+                                    StorageManager.saveBinaryFile(fileBytes, jsonMessage.getString("sender"), jsonMessage.getString("extension"));
+//                                    String fileName = "from" + jsonMessage.getString("sender") + "asBinaryFile" + jsonMessage.getString("extension");
+//                                    String filePath = Environment.getExternalStorageDirectory() + File.separator + fileName;
+//                                    File file = new File(filePath);
+//
+//
+//                                    OutputStream outputStream1 = new FileOutputStream(file);
+//                                    outputStream1.write(fileBytes);
+//
+//                                    outputStream1.close();
 
                                     break;
 
                                 default:
-
 
                             }
 
@@ -232,8 +228,6 @@ public class MyTcpSocket extends Thread {
                             e.printStackTrace();
                             Log.e("*****************", "can't parsing the json");
                         }
-
-
 
                     }else{
                         Thread.sleep(2000);

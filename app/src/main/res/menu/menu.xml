@@ -4,13 +4,13 @@
 
     <item
         android:id="@+id/action_get_image"
-        android:icon="@drawable/ic_file"
+        android:icon="@drawable/ic_image"
         android:orderInCategory="100"
         android:title="send file"
         app:showAsAction="always" />
     <item
         android:id="@+id/action_get_file"
-        android:icon="@drawable/ic_image"
+        android:icon="@drawable/ic_file"
         android:orderInCategory="10"
         android:title="send image"
         app:showAsAction="always" />

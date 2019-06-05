@@ -51,7 +51,6 @@ public class Event_BinaryFile extends Message {
 
         return readFileToByteArray(filePath);
 
-
     }
 
 

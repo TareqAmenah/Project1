@@ -1,16 +1,23 @@
 package com.amenah.tareq.project1;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -20,33 +27,44 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amenah.tareq.project1.ConnectionManager.Constants;
+import com.amenah.tareq.project1.ConnectionManager.Messages.Event_BinaryFile;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Image;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Text;
 import com.amenah.tareq.project1.ConnectionManager.MyTcpSocket;
+import com.nbsp.materialfilepicker.MaterialFilePicker;
+import com.nbsp.materialfilepicker.ui.FilePickerActivity;
+
+import java.io.File;
+import java.io.IOException;
+
 
 public class ChatActivity extends AppCompatActivity implements ChatActivityControler {
 
+    public static final int PERMISSIONS_REQUEST_CODE = 12;
+    public static final int FILE_PICKER_REQUEST_CODE = 11;
+    public static final int IMAGE_PICKER_REQUEST_CODE = 10;
+
+
     MyTcpSocket socket;
     ImageButton mbSendText;
-    ImageButton mbSendImage;
     EditText metMessage;
-    LinearLayout massegesLayout;
-    ImageView mivImageFromServer;
+    LinearLayout messagesLayout;
 
     String receiverName;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         getWindow().setBackgroundDrawableResource(R.mipmap.chat_background);
 
         mbSendText = findViewById(R.id.btn_send_text);
-        mbSendImage = findViewById(R.id.btn_send_image);
         metMessage = findViewById(R.id.input_message);
-        massegesLayout = findViewById(R.id.massagesLayout);
-        //mivImageFromServer = findViewById(R.id.image_from_server);
+        messagesLayout = findViewById(R.id.massagesLayout);
 
 
         String token = getIntent().getStringExtra("Token");
@@ -54,45 +72,70 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         String IPAddress = Constants.IPAddress;
         int portNumber = Constants.socketPortNumber;
 
+        getSupportActionBar().setTitle(receiverName);
+        getSupportActionBar().setIcon(R.drawable.ic_person);
 
-        socket = new MyTcpSocket(IPAddress, portNumber, token, this);
-        socket.start();
+
+        MyApp myApp = (MyApp) getApplication();
+        myApp.setSocketDetiels(IPAddress, portNumber, token, this);
+
+        socket = myApp.getSocket();
+//        socket = new MyTcpSocket(IPAddress, portNumber, token, this);
+//        socket.start();
 
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_get_image:
+                getImageFromDevice();
+                return true;
+            case R.id.action_get_file:
+                getFileFromDevice();
+                return true;
+            default:
+                // Do nothing
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
     public void sendTextMessage(View view) {
 
 
         String s = metMessage.getText().toString();
-        if(s != ""){
+        if (s != "") {
             new Event_Text(receiverName, s).sendMessage();
         }
 
         metMessage.setText("");
-        addTextMessageTolayout("me", s);
+        addTextMessageToLayout("me", s);
     }
 
-
-
     @Override
-    public void addTextMessageTolayout(String sender, String message) {
+    public void addTextMessageToLayout(String sender, String message) {
 
         LayoutInflater messageInflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
         final View messageBubble;
 
-        if(sender == "me"){
+        if (sender == "me") {
 
-            messageBubble = messageInflater.inflate(R.layout.my_message,null);
+            messageBubble = messageInflater.inflate(R.layout.my_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
             messageText.setText(message);
 
 
-        }
-        else{
+        } else {
 
-            messageBubble = messageInflater.inflate(R.layout.their_message,null);
+            messageBubble = messageInflater.inflate(R.layout.their_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
             messageText.setText(message);
 
@@ -102,7 +145,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                massegesLayout.addView(messageBubble);
+                messagesLayout.addView(messageBubble);
             }
         });
 
@@ -110,24 +153,36 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
     }
 
     @Override
-    public void addImageMessageToLayout(String sender, String filePath) {
+    public void addImageMessageToLayout(String sender, final String filePath) {
 
         Bitmap imageBitmap = BitmapFactory.decodeFile(filePath);
 
         LayoutInflater messageInflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         final View messageBubble;
 
-        if(sender=="me"){
-            messageBubble = messageInflater.inflate(R.layout.my_message,null);
+        if (sender == "me") {
+            messageBubble = messageInflater.inflate(R.layout.my_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
             messageText.setText("This is image:");
             ImageView image = messageBubble.findViewById(R.id.message_image);
             image.getLayoutParams().height = 256;
             image.getLayoutParams().width = 256;
+            image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    File myFile = new File(filePath);
+                    try {
+                        FileOpen.openFile(ChatActivity.this, myFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(ChatActivity.this, "Cann't open this file!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
             image.setImageBitmap(imageBitmap);
 
-        }else {
-            messageBubble = messageInflater.inflate(R.layout.their_message,null);
+        } else {
+            messageBubble = messageInflater.inflate(R.layout.their_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
             messageText.setText("This is image:");
             ImageView image = messageBubble.findViewById(R.id.message_image);
@@ -137,33 +192,33 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         }
 
 
-
-
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                massegesLayout.addView(messageBubble);
+                messagesLayout.addView(messageBubble);
             }
         });
 
     }
 
-
-    public void getImageFromDevice(View view) {
+    public void getImageFromDevice() {
         Intent intent = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, 0);
+        startActivityForResult(intent, IMAGE_PICKER_REQUEST_CODE);
     }
 
+    public void getFileFromDevice() {
+
+        checkPermissionsAndOpenFilePicker();
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         //get image from the device
-        if (data != null && requestCode == 0) {
+        if (data != null && requestCode == IMAGE_PICKER_REQUEST_CODE) {
 
-            if (resultCode == RESULT_OK) {
-                Bitmap bitmap = null;
+            if (resultCode == RESULT_OK) { // select image case
                 Uri uri = data.getData();
 
                 Cursor cursor = getContentResolver().query(uri, null, null, null, null);
@@ -173,40 +228,65 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 
                 new Event_Image(receiverName, picturePath).sendMessage();
 
-                addImageMessageToLayout("me",picturePath);
+                addImageMessageToLayout("me", picturePath);
 
             }
+        } else if (data != null && requestCode == FILE_PICKER_REQUEST_CODE) { // select binary file case
+            if (resultCode == RESULT_OK) {
+
+                String path = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
+
+                new Event_BinaryFile(receiverName, path).sendMessage();
+
+
+                //addImageMessageToLayout("me",filePath);
+
+            }
+
         }
     }
 
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_CODE: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openFilePicker();
+                } else {
+                    showError();
+                }
+            }
+        }
+    }
 
-//    private void selectImage() {
-//        final CharSequence[] options = { "Take Photo", "Choose from Gallery","Cancel" };
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle("Add Photo!");
-//        builder.setItems(options, new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int item) {
-//                if (options[item].equals("Take Photo"))
-//                {
-//                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//                    File f = new File(android.os.Environment.getExternalStorageDirectory(), "temp.jpg");
-//                    intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
-//                    startActivityForResult(intent, 1);
-//                }
-//                else if (options[item].equals("Choose from Gallery"))
-//                {
-//                    Intent intent = new   Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//                    startActivityForResult(intent, 2);
-//                }
-//                else if (options[item].equals("Cancel")) {
-//                    dialog.dismiss();
-//                }
-//            }
-//        });
-//        builder.show();
-//    }
+    private void checkPermissionsAndOpenFilePicker() {
+        String permission = Manifest.permission.READ_EXTERNAL_STORAGE;
+
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                showError();
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSIONS_REQUEST_CODE);
+            }
+        } else {
+            openFilePicker();
+        }
+    }
+
+    private void showError() {
+        Toast.makeText(this, "Allow external storage reading", Toast.LENGTH_SHORT).show();
+    }
+
+    private void openFilePicker() {
+        new MaterialFilePicker()
+                .withActivity(this)
+                .withRequestCode(FILE_PICKER_REQUEST_CODE)
+                .withHiddenFiles(true)
+                .withTitle("Sample title")
+                .start();
+    }
 
 
     @Override
@@ -215,4 +295,6 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         Toast.makeText(this, "Socket connection closed!", Toast.LENGTH_LONG).show();
         super.onDestroy();
     }
+
+
 }

@@ -157,7 +157,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void acceptedLogin(String username, String receiverName, String token) {
         showToast("Welcome " + username + " ^_^");
-        Intent goToChatActivity = new Intent(LoginActivity.this, ChatActivity2.class);
+        Intent goToChatActivity = new Intent(LoginActivity.this, ChatActivity.class);
         goToChatActivity.putExtra("Token",token);
         goToChatActivity.putExtra("ReceiverName", receiverName);
         startActivity(goToChatActivity);
