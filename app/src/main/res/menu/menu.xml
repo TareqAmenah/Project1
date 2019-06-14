@@ -15,4 +15,10 @@
         android:title="send image"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/action_delete_chat_history"
+        android:orderInCategory="10"
+        android:title="Delete chat history"
+        app:showAsAction="never" />
+
 </menu>

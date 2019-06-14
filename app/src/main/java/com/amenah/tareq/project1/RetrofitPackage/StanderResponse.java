@@ -14,7 +14,7 @@ public class StanderResponse {
         this.errors = errors;
     }
 
-    public boolean isStatus() {
+    public boolean getStatus() {
         return status;
     }
 

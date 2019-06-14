@@ -1,9 +1,10 @@
 package com.amenah.tareq.project1.ConnectionManager.Messages;
 
+import com.amenah.tareq.project1.User;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -13,23 +14,34 @@ import java.util.Date;
 
 public class Event_BinaryFile extends Message {
 
-    File binaryFile;
-    private String receiver;
-    private String filePath;
-    private String extension;
-    private String sentDate;
 
-    public Event_BinaryFile(String receiver, String filePath) {
+    public Event_BinaryFile(String sender, String receiver, String filePath) {
         this.type = "BinaryFile";
         this.receiver = receiver;
         this.filePath = filePath;
-        binaryFile = new File(filePath);
-        this.extension = getFileExtension(binaryFile);
+        this.extension = getFileExtension(filePath);
+        this.sender = sender;
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
         sentDate = dateFormat.format(date);
 
+    }
+
+    public Event_BinaryFile(JSONObject jsonMessage, String filePath) {
+        try {
+            type = jsonMessage.getString("type");
+            receiver = User.getUsername();
+            extension = jsonMessage.getString("extension");
+            sentDate = jsonMessage.getString("sentDate");
+            sender = jsonMessage.getString("sender");
+            this.filePath = filePath;
+
+            saveMessage(sender); // friend name is the sender name
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -54,13 +66,12 @@ public class Event_BinaryFile extends Message {
     }
 
 
-    private String getFileExtension(File file) {
-        String name = file.getName();
-        int lastIndexOf = name.lastIndexOf(".");
+    private String getFileExtension(String file) {
+        int lastIndexOf = file.lastIndexOf(".");
         if (lastIndexOf == -1) {
             return ""; // empty extension
         }
-        return name.substring(lastIndexOf);
+        return file.substring(lastIndexOf);
     }
 
 

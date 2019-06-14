@@ -14,7 +14,6 @@ import com.amenah.tareq.project1.RetrofitPackage.ApiServece;
 import com.amenah.tareq.project1.RetrofitPackage.LoginUserModel;
 import com.amenah.tareq.project1.RetrofitPackage.RetrofitServiceManager;
 import com.amenah.tareq.project1.RetrofitPackage.StanderResponse;
-import com.google.gson.JsonObject;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import retrofit2.Call;
@@ -62,7 +61,6 @@ public class LoginActivity extends AppCompatActivity {
 
 
 
-            //TODO: implement log in method
             final String username = mUsername.getText().toString();
             String password = mPassword.getText().toString();
 
@@ -76,44 +74,30 @@ public class LoginActivity extends AppCompatActivity {
             retrofitManager.login(user).enqueue(new Callback<StanderResponse>() {
                 @Override
                 public void onResponse(Call<StanderResponse> call, Response<StanderResponse> response) {
-                    //TODO: implement onResponse method of log in request
                     Log.v("Request response",response.toString());
                     mLoginLoader.hide();
                     mBlur.setVisibility(View.INVISIBLE);
                     mUsername.setText("");
                     mPassword.setText("");
 
-                    int resultCode = response.code();
+                    if (response.body().getStatus()) {
 
-                    switch (resultCode){
-                        case 404:
-                            anAcceptedLogin();
-                            break;
+                        String token = response.body().getData().toString();
+                        String receiverName = mReceiverName.getText().toString();
+                        User.setUsername(username);
+                        User.setAccessToken(token);
+                        acceptedLogin(receiverName);
 
-                        case 200:
-                            boolean responseStatus = response.body().isStatus();
-                            if(!responseStatus){
-                                anAcceptedLogin();
-                                break;
-                            }else{
-                                JsonObject responseData = (JsonObject) response.body().getData();
-                                String token = responseData.get("token").getAsString();
-                                String receiverName = mReceiverName.getText().toString();
-                                acceptedLogin(username, receiverName, token);
-                                break;
-
-                            }
-
-                        default:
-                            showToast("Strange case -_-");
-
+                    } else {
+                        showToast(response.body().getErrors().toString());
                     }
+
+
 
                 }
 
                 @Override
                 public void onFailure(Call<StanderResponse> call, Throwable t) {
-                    //TODO: implement onFailure method of log in request
                     Log.e("***********************",t.toString());
                     showToast("Connection Error!\nPlease retry");
                     mLoginLoader.hide();
@@ -155,10 +139,9 @@ public class LoginActivity extends AppCompatActivity {
         showToast("Wrong user details!");
     }
 
-    private void acceptedLogin(String username, String receiverName, String token) {
-        showToast("Welcome " + username + " ^_^");
+    private void acceptedLogin(String receiverName) {
+        showToast("Welcome " + User.getUsername() + " ^_^");
         Intent goToChatActivity = new Intent(LoginActivity.this, ChatActivity.class);
-        goToChatActivity.putExtra("Token",token);
         goToChatActivity.putExtra("ReceiverName", receiverName);
         startActivity(goToChatActivity);
     }

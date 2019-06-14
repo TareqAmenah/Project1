@@ -8,7 +8,6 @@ public class RetrofitServiceManager {
 
     public static Retrofit retrofit;
     public static ApiServece retrofitManager;
-    //TODO: enter the url
     private static String BASE_URL;
 
     public static void set(String url) {

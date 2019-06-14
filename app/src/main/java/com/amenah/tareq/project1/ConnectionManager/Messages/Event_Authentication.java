@@ -1,15 +1,15 @@
 package com.amenah.tareq.project1.ConnectionManager.Messages;
 
+import com.amenah.tareq.project1.User;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Event_Authentication extends Message {
-    
-    
-    public Event_Authentication(String token) {
+
+
+    public Event_Authentication() {
         this.type = "authentication";
-        //TODO get the Access token of the user
-        accessToken = token;
     }
     
     @Override
@@ -18,7 +18,7 @@ public class Event_Authentication extends Message {
 
         try {
             json.put("type",type);
-            json.put("AccessToken",accessToken);
+            json.put("AccessToken", User.getAccessToken());
         } catch (JSONException e) {
             e.printStackTrace();
         }

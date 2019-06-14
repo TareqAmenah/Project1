@@ -4,6 +4,10 @@ import android.util.Log;
 
 import com.amenah.tareq.project1.ChatActivityControler;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Authentication;
+import com.amenah.tareq.project1.ConnectionManager.Messages.Event_BinaryFile;
+import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Image;
+import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Text;
+import com.amenah.tareq.project1.SendInSocketException;
 import com.amenah.tareq.project1.StorageManager;
 
 import org.json.JSONException;
@@ -24,59 +28,42 @@ public class MyTcpSocket extends Thread {
     private static DataInputStream reader;
     private static DataOutputStream writer;
     private static Socket socket;
-    private static String token;
 
-    @Override
-    public void run() {
-        try {
-
-            this.socket = new Socket(serverName,portNumber);
-            reader = new DataInputStream(socket.getInputStream());
-            writer = new DataOutputStream(socket.getOutputStream());
-            System.out.println("now you are connected to: " + socket.getRemoteSocketAddress());
-
-            new Event_Authentication(token).sendMessage();
-            new ServerListener().start();
-
-
-        } catch (IOException e) {
-            System.out.println("Connection error ..!");
-            e.printStackTrace();
-        }
-    }
-
-    private String charsetName = "UTF-8";
     ChatActivityControler chatActivityControler;
-    
-    public MyTcpSocket(String serverName, int portNumber, String token, ChatActivityControler chatActivityControler) {
+    private String charsetName = "UTF-8";
+
+    public MyTcpSocket(String serverName, int portNumber, ChatActivityControler chatActivityControler) {
         this.serverName = serverName;
         this.chatActivityControler = chatActivityControler;
         this.portNumber = portNumber;
-        this.token = token;
 
     }
-    
-    public static void sendBinaryFile(byte[] file){
+
+    public static void sendBinaryFile(byte[] file) throws SendInSocketException {
 
         try {
             writer.write(intToByteArray(file.length));
             writer.write(file);
         } catch (IOException e) {
             e.printStackTrace();
+            throw new SendInSocketException();
         }
 
     }
 
-    public static void sendJson(JSONObject json){
+    public static void sendJson(JSONObject json) throws SendInSocketException {
 
-        //TODO send json message
-        sendString(json.toString());
+        try {
+            sendString(json.toString());
+        } catch (SocketException e) {
+            e.printStackTrace();
+            throw new SendInSocketException();
+        }
         System.out.println("Json sent successfully ");
 
     }
 
-
-    public static void sendString(String s){
+    public static void sendString(String s) throws SocketException {
         try {
             byte[] b = stringToByteArray(s, s.length());
             writer.write(intToByteArray(b.length));
@@ -84,6 +71,26 @@ public class MyTcpSocket extends Thread {
             System.out.println("String sent successfully ");
         } catch (IOException e) {
             System.err.println("Error while sending String message ... !");
+            e.printStackTrace();
+            throw new SocketException();
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
+
+            this.socket = new Socket(serverName, portNumber);
+            reader = new DataInputStream(socket.getInputStream());
+            writer = new DataOutputStream(socket.getOutputStream());
+            System.out.println("now you are connected to: " + socket.getRemoteSocketAddress());
+
+            new Event_Authentication().sendMessage();
+            new ServerListener().start();
+
+
+        } catch (IOException e) {
+            System.out.println("Connection error ..!");
             e.printStackTrace();
         }
     }
@@ -172,7 +179,7 @@ public class MyTcpSocket extends Thread {
                             switch (jsonMessage.getString("type")){
 
                                 case "Text":
-                                    chatActivityControler.addTextMessageToLayout("server", jsonMessage.getString("message"));
+                                    chatActivityControler.addTextMessageToLayout(new Event_Text(jsonMessage));
                                     break;
 
                                 case "Image":
@@ -183,17 +190,10 @@ public class MyTcpSocket extends Thread {
                                     byte[] imageBytes = new byte[imageSizeInt];
                                     reader.read(imageBytes,0,imageSizeInt);
 
-                                    StorageManager.saveImage(imageBytes, jsonMessage.getString("sender"), jsonMessage.getString("extension"));
-//                                    String imageName = "from" + jsonMessage.getString("sender") + jsonMessage.getString("extension");
-//                                    String imagePath = Environment.getExternalStorageDirectory() + File.separator + imageName;
-//                                    File image = new File(imagePath);
-//
-//                                    OutputStream outputStream = new FileOutputStream(image);
-//                                    outputStream.write(imageBytes);
-//
-//                                    outputStream.close();
+                                    String imagePath = StorageManager.saveImage(imageBytes,
+                                            jsonMessage.getString("sender"), jsonMessage.getString("extension"));
 
-                                    //chatActivityControler.addImageMessageToLayout(jsonMessage.getString("sender"), imagePath);
+                                    chatActivityControler.addImageMessageToLayout(new Event_Image(jsonMessage, imagePath));
 
                                     break;
 
@@ -206,16 +206,10 @@ public class MyTcpSocket extends Thread {
                                     byte[] fileBytes = new byte[fileSizeInt];
                                     reader.read(fileBytes, 0, fileSizeInt);
 
-                                    StorageManager.saveBinaryFile(fileBytes, jsonMessage.getString("sender"), jsonMessage.getString("extension"));
-//                                    String fileName = "from" + jsonMessage.getString("sender") + "asBinaryFile" + jsonMessage.getString("extension");
-//                                    String filePath = Environment.getExternalStorageDirectory() + File.separator + fileName;
-//                                    File file = new File(filePath);
-//
-//
-//                                    OutputStream outputStream1 = new FileOutputStream(file);
-//                                    outputStream1.write(fileBytes);
-//
-//                                    outputStream1.close();
+                                    String filePath = StorageManager.saveBinaryFile(fileBytes,
+                                            jsonMessage.getString("sender"), jsonMessage.getString("extension"));
+
+                                    chatActivityControler.addBinaryFileMessageToLayout(new Event_BinaryFile(jsonMessage, filePath));
 
                                     break;
 

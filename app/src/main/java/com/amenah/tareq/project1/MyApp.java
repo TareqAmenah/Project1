@@ -10,8 +10,8 @@ public class MyApp extends android.app.Application {
         return socket;
     }
 
-    public void setSocketDetiels(String serverName, int portNumber, String token, ChatActivityControler context) {
-        socket = new MyTcpSocket(serverName, portNumber, token, context);
+    public void setSocketDetiels(String serverName, int portNumber, ChatActivityControler context) {
+        socket = new MyTcpSocket(serverName, portNumber, context);
         socket.start();
     }
 

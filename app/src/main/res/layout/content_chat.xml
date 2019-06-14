@@ -60,8 +60,8 @@
                 android:layout_height="28dp"
                 android:layout_gravity="center"
                 android:background="@drawable/ic_send_black_24dp"
-                android:onClick="sendTextMessage"
                 android:scaleType="fitCenter" />
+            <!--android:onClick="sendTextMessage"-->
 
         </LinearLayout>
 

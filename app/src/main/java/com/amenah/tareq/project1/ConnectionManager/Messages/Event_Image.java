@@ -3,6 +3,8 @@ package com.amenah.tareq.project1.ConnectionManager.Messages;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.amenah.tareq.project1.User;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,22 +15,34 @@ import java.util.Date;
 
 public class Event_Image extends Message {
 
-    private String receiver;
-    private String filePath;
-    private String extension;
-    private String sentDate;
 
-
-    public Event_Image(String receiver, String filePath) {
+    public Event_Image(String sender, String receiver, String filePath) {
         this.type = "Image";
         this.receiver = receiver;
         this.filePath = filePath;
         this.extension = ".jpg";
+        this.sender = sender;
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
         sentDate = dateFormat.format(date);
 
+    }
+
+    public Event_Image(JSONObject jsonMessage, String filePath) {
+        try {
+            type = jsonMessage.getString("type");
+            receiver = User.getUsername();
+            extension = jsonMessage.getString("extension");
+            sentDate = jsonMessage.getString("sentDate");
+            sender = jsonMessage.getString("sender");
+            this.filePath = filePath;
+
+            saveMessage(sender); // friend name is the sender name
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

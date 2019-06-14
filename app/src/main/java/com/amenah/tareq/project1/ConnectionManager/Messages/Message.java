@@ -1,36 +1,93 @@
 package com.amenah.tareq.project1.ConnectionManager.Messages;
 
 import com.amenah.tareq.project1.ConnectionManager.MyTcpSocket;
+import com.amenah.tareq.project1.SendInSocketException;
+import com.amenah.tareq.project1.User;
 
 import org.json.JSONObject;
 
-public abstract class Message {
+import java.io.Serializable;
+
+public abstract class Message implements Serializable {
     
-    //region property
     protected String type;
-    protected String accessToken;
+    protected String receiver;
+    protected String sender;
+    protected String text;
+    protected String extension;
+    protected String filePath;
+    protected String sentDate;
     private int id;
+
     public abstract JSONObject getJson();
     public abstract byte[] getBytes();
-    //endregion
-    
+
+    public String getReceiver() {
+        return receiver;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public String getExtension() {
+        return extension;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public String getSentDate() {
+        return sentDate;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getSender() {
+        return sender;
+    }
+
     public void sendMessage(){
-    
+
         System.out.println("Sending message ....");
-        
+        if (this.type == "authentication") {
+            try {
+                MyTcpSocket.sendJson(this.getJson());
+            } catch (SendInSocketException e) {
+                e.printStackTrace();
+            }
+        }
         //Send Binary file
-        if (this.type == "Image" || this.type == "BinaryFile") {
-            //TODO send Binary files
-            MyTcpSocket.sendJson(this.getJson());
-            MyTcpSocket.sendBinaryFile(this.getBytes());
+        else if (this.type == "Image" || this.type == "BinaryFile") {
+            try {
+                MyTcpSocket.sendJson(this.getJson());
+                MyTcpSocket.sendBinaryFile(this.getBytes());
+                saveMessage(receiver); // friend name is the receiver name
+            } catch (SendInSocketException e) {
+                e.printStackTrace();
+            }
 
 
         }else{
-            System.out.println("String message: " + this.getJson());
-            MyTcpSocket.sendJson(this.getJson());
+            try {
+                MyTcpSocket.sendJson(this.getJson());
+                saveMessage(receiver); // friend name is the receiver name
+            } catch (SendInSocketException e) {
+                e.printStackTrace();
+            }
         }
 
+    }
 
+    protected void saveMessage(String friendName) {
+        User.addMessage(friendName, this);
     }
 
 

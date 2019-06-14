@@ -30,12 +30,14 @@ import com.amenah.tareq.project1.ConnectionManager.Constants;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_BinaryFile;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Image;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Text;
+import com.amenah.tareq.project1.ConnectionManager.Messages.Message;
 import com.amenah.tareq.project1.ConnectionManager.MyTcpSocket;
 import com.nbsp.materialfilepicker.MaterialFilePicker;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 
 public class ChatActivity extends AppCompatActivity implements ChatActivityControler {
@@ -60,14 +62,13 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        getWindow().setBackgroundDrawableResource(R.mipmap.chat_background);
+        getWindow().setBackgroundDrawableResource(R.drawable.gradient_background);
 
         mbSendText = findViewById(R.id.btn_send_text);
         metMessage = findViewById(R.id.input_message);
         messagesLayout = findViewById(R.id.massagesLayout);
 
 
-        String token = getIntent().getStringExtra("Token");
         receiverName = getIntent().getStringExtra("ReceiverName");
         String IPAddress = Constants.IPAddress;
         int portNumber = Constants.socketPortNumber;
@@ -75,13 +76,29 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         getSupportActionBar().setTitle(receiverName);
         getSupportActionBar().setIcon(R.drawable.ic_person);
 
+        mbSendText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String s = metMessage.getText().toString();
+
+                if (s != "") {
+                    Message message = new Event_Text(User.getUsername(), receiverName, s);
+                    message.sendMessage();
+                    addTextMessageToLayout(message);
+
+                }
+
+                metMessage.setText("");
+            }
+        });
+
 
         MyApp myApp = (MyApp) getApplication();
-        myApp.setSocketDetiels(IPAddress, portNumber, token, this);
+        myApp.setSocketDetiels(IPAddress, portNumber, this);
 
         socket = myApp.getSocket();
-//        socket = new MyTcpSocket(IPAddress, portNumber, token, this);
-//        socket.start();
+
+        getChatHistory();
 
     }
 
@@ -100,6 +117,8 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
             case R.id.action_get_file:
                 getFileFromDevice();
                 return true;
+            case R.id.action_delete_chat_history:
+                deleteChatHistory();
             default:
                 // Do nothing
         }
@@ -109,35 +128,37 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 
     public void sendTextMessage(View view) {
 
-
         String s = metMessage.getText().toString();
+
         if (s != "") {
-            new Event_Text(receiverName, s).sendMessage();
+            Message message = new Event_Text(User.getUsername(), receiverName, s);
+            message.sendMessage();
+            addTextMessageToLayout(message);
+
         }
 
         metMessage.setText("");
-        addTextMessageToLayout("me", s);
     }
 
     @Override
-    public void addTextMessageToLayout(String sender, String message) {
+    public void addTextMessageToLayout(Message message) {
 
         LayoutInflater messageInflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
         final View messageBubble;
 
-        if (sender == "me") {
+        if (message.getSender().equals(User.getUsername())) {
 
             messageBubble = messageInflater.inflate(R.layout.my_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
-            messageText.setText(message);
+            messageText.setText(message.getText());
 
 
         } else {
 
             messageBubble = messageInflater.inflate(R.layout.their_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
-            messageText.setText(message);
+            messageText.setText(message.getText());
 
 
         }
@@ -153,14 +174,14 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
     }
 
     @Override
-    public void addImageMessageToLayout(String sender, final String filePath) {
+    public void addImageMessageToLayout(final Message message) {
 
-        Bitmap imageBitmap = BitmapFactory.decodeFile(filePath);
+        Bitmap imageBitmap = BitmapFactory.decodeFile(message.getFilePath());
 
         LayoutInflater messageInflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         final View messageBubble;
 
-        if (sender == "me") {
+        if (message.getSender().equals(User.getUsername())) {
             messageBubble = messageInflater.inflate(R.layout.my_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
             messageText.setText("This is image:");
@@ -170,7 +191,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
             image.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    File myFile = new File(filePath);
+                    File myFile = new File(message.getFilePath());
                     try {
                         FileOpen.openFile(ChatActivity.this, myFile);
                     } catch (IOException e) {
@@ -189,6 +210,77 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
             image.getLayoutParams().height = 256;
             image.getLayoutParams().width = 256;
             image.setImageBitmap(imageBitmap);
+            image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    File myFile = new File(message.getFilePath());
+                    try {
+                        FileOpen.openFile(ChatActivity.this, myFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(ChatActivity.this, "Cann't open this file!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                messagesLayout.addView(messageBubble);
+            }
+        });
+
+    }
+
+    @Override
+    public void addBinaryFileMessageToLayout(final Message message) {
+        LayoutInflater messageInflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        final View messageBubble;
+
+        if (message.getSender().equals(User.getUsername())) {
+            messageBubble = messageInflater.inflate(R.layout.my_message, null);
+            TextView messageText = messageBubble.findViewById(R.id.message_body);
+            messageText.setText("This is image:");
+            ImageView image = messageBubble.findViewById(R.id.message_image);
+            image.getLayoutParams().height = 128;
+            image.getLayoutParams().width = 128;
+            image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    File myFile = new File(message.getFilePath());
+                    try {
+                        FileOpen.openFile(ChatActivity.this, myFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(ChatActivity.this, "Cann't open this file!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+            image.setImageResource(R.drawable.ic_apk_box);
+
+        } else {
+            messageBubble = messageInflater.inflate(R.layout.their_message, null);
+            TextView messageText = messageBubble.findViewById(R.id.message_body);
+            messageText.setText("This is image:");
+            ImageView image = messageBubble.findViewById(R.id.message_image);
+            image.getLayoutParams().height = 128;
+            image.getLayoutParams().width = 128;
+            image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    File myFile = new File(message.getFilePath());
+                    try {
+                        FileOpen.openFile(ChatActivity.this, myFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(ChatActivity.this, "Cann't open this file!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            image.setImageResource(R.drawable.ic_apk_box);
         }
 
 
@@ -226,9 +318,10 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
                 int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
                 String picturePath = cursor.getString(idx);
 
-                new Event_Image(receiverName, picturePath).sendMessage();
+                Message message = new Event_Image(User.getUsername(), receiverName, picturePath);
+                message.sendMessage();
 
-                addImageMessageToLayout("me", picturePath);
+                addImageMessageToLayout(message);
 
             }
         } else if (data != null && requestCode == FILE_PICKER_REQUEST_CODE) { // select binary file case
@@ -236,10 +329,11 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 
                 String path = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
 
-                new Event_BinaryFile(receiverName, path).sendMessage();
+                Message message = new Event_BinaryFile(User.getUsername(), receiverName, path);
+                message.sendMessage();
 
+                addBinaryFileMessageToLayout(message);
 
-                //addImageMessageToLayout("me",filePath);
 
             }
 
@@ -289,8 +383,49 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
     }
 
 
+    private void getChatHistory() {
+
+        List<Message> messages = (List<Message>) StorageManager.getFriendChat(receiverName);
+        User.setChatsOf(receiverName, messages);
+
+        for (Message message : messages) {
+            switch (message.getType()) {
+                case "Text":
+                    addTextMessageToLayout(message);
+                    break;
+
+                case "Image":
+                    addImageMessageToLayout(message);
+                    break;
+
+                case "BinaryFile":
+                    addBinaryFileMessageToLayout(message);
+                    break;
+            }
+        }
+    }
+
+
+    private void deleteChatHistory() {
+        StorageManager.deleteFriendChat(receiverName);
+        clearChatListView();
+        User.deleteFriendChat(receiverName);
+
+    }
+
+    private void clearChatListView() {
+        int count = messagesLayout.getChildCount();
+        View v = null;
+        for (int i = 0; i < count; i++) {
+            v = messagesLayout.getChildAt(i);
+            v.setVisibility(View.GONE);
+            //do something with your child element
+        }
+    }
+
     @Override
     protected void onDestroy() {
+        StorageManager.saveFriendChat(receiverName, User.getChatsOf(receiverName));
         socket.closeConnection();
         Toast.makeText(this, "Socket connection closed!", Toast.LENGTH_LONG).show();
         super.onDestroy();

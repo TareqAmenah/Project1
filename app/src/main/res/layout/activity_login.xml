@@ -170,8 +170,8 @@
 
                         <ImageView
                             android:id="@+id/google_sign_btn"
-                            android:layout_width="70dp"
-                            android:layout_height="60dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:layout_margin="10dp"
                             android:background="@android:color/white"
                             android:src="@drawable/google"
@@ -202,8 +202,8 @@
 
                         <ImageView
                             android:id="@+id/facebook_signin_btn"
-                            android:layout_width="70dp"
-                            android:layout_height="60dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:layout_margin="10dp"
                             android:background="@android:color/white"
                             android:src="@drawable/facebook"

@@ -20,7 +20,6 @@ import com.amenah.tareq.project1.RetrofitPackage.RetrofitServiceManager;
 import com.amenah.tareq.project1.RetrofitPackage.SignUpUserModel;
 import com.amenah.tareq.project1.RetrofitPackage.StanderResponse;
 import com.bumptech.glide.Glide;
-import com.google.gson.JsonObject;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.io.ByteArrayOutputStream;
@@ -72,7 +71,6 @@ public class RegisterActivity extends AppCompatActivity {
 
 
     public void register() {
-        //TODO: implement register method
 
         mBlur.setBackgroundResource(R.drawable.button_background);
         mRegisterLoader.setVisibility(View.VISIBLE);
@@ -92,38 +90,24 @@ public class RegisterActivity extends AppCompatActivity {
         service.signup(user).enqueue(new Callback<StanderResponse>() {
             @Override
             public void onResponse(Call<StanderResponse> call, Response<StanderResponse> response) {
-                //TODO: implement onResponse method of sign up request
                 Log.v("Request response",response.toString());
 
                 mRegisterLoader.smoothToHide();
                 mBlur.setVisibility(View.INVISIBLE);
 
-                int resultCode = response.code();
+                if (response.body().getStatus()) {
 
-                switch (resultCode){
-                    case 400: // bad request
-//                        JsonObject responseData400 = (JsonObject) response.body().getData();
-//                        String errorMessage = responseData400.get("err").getAsString();
-                        showToast("user info have duplication");
-                        break;
+                    String token = response.body().getData().toString();
+                    acceptedRegister(username, token);
 
-                    case 200:
-                        JsonObject responseData200 = (JsonObject) response.body().getData();
-                        String token = responseData200.get("token").getAsString();
-                        acceptedRegister(username,token);
-                        break;
-
-                    default:
-                        showToast("Strange case -_-");
-
+                } else {
+                    showToast(response.body().getErrors().toString());
                 }
-
 
             }
 
             @Override
             public void onFailure(Call<StanderResponse> call, Throwable t) {
-                //TODO: implement onFailure method of sign up request
                 Log.e("****************",t.toString());
                 showToast("Connection Error!\nPlease retry");
                 mRegisterLoader.smoothToHide();
