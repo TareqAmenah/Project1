@@ -1,4 +1,4 @@
-package com.amenah.tareq.project1.RetrofitPackage;
+package com.amenah.tareq.project1.ConnectionManager.RetrofitPackage;
 
 public class LoginResponse {
 

@@ -3,7 +3,7 @@ package com.amenah.tareq.project1.ConnectionManager.Messages;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import com.amenah.tareq.project1.User;
+import com.amenah.tareq.project1.Controllers.UserModule;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +32,7 @@ public class Event_Image extends Message {
     public Event_Image(JSONObject jsonMessage, String filePath) {
         try {
             type = jsonMessage.getString("type");
-            receiver = User.getUsername();
+            receiver = UserModule.getUsername();
             extension = jsonMessage.getString("extension");
             sentDate = jsonMessage.getString("sentDate");
             sender = jsonMessage.getString("sender");

@@ -7,8 +7,7 @@ import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Authentication
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_BinaryFile;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Image;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Text;
-import com.amenah.tareq.project1.SendInSocketException;
-import com.amenah.tareq.project1.StorageManager;
+import com.amenah.tareq.project1.Controllers.StorageManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -80,7 +79,7 @@ public class MyTcpSocket extends Thread {
     public void run() {
         try {
 
-            this.socket = new Socket(serverName, portNumber);
+            socket = new Socket(serverName, portNumber);
             reader = new DataInputStream(socket.getInputStream());
             writer = new DataOutputStream(socket.getOutputStream());
             System.out.println("now you are connected to: " + socket.getRemoteSocketAddress());

@@ -1,6 +1,6 @@
 package com.amenah.tareq.project1.ConnectionManager;
 
-import com.amenah.tareq.project1.RetrofitPackage.RetrofitServiceManager;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.RetrofitServiceManager;
 
 public class ConnectionSettingsController {
 

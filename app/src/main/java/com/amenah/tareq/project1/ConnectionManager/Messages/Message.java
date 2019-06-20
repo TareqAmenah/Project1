@@ -1,8 +1,8 @@
 package com.amenah.tareq.project1.ConnectionManager.Messages;
 
 import com.amenah.tareq.project1.ConnectionManager.MyTcpSocket;
-import com.amenah.tareq.project1.SendInSocketException;
-import com.amenah.tareq.project1.User;
+import com.amenah.tareq.project1.ConnectionManager.SendInSocketException;
+import com.amenah.tareq.project1.Controllers.UserModule;
 
 import org.json.JSONObject;
 
@@ -87,7 +87,7 @@ public abstract class Message implements Serializable {
     }
 
     protected void saveMessage(String friendName) {
-        User.addMessage(friendName, this);
+        UserModule.addMessage(friendName, this);
     }
 
 

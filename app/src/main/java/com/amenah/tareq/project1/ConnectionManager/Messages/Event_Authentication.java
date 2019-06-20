@@ -1,6 +1,6 @@
 package com.amenah.tareq.project1.ConnectionManager.Messages;
 
-import com.amenah.tareq.project1.User;
+import com.amenah.tareq.project1.Controllers.UserModule;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,7 +18,7 @@ public class Event_Authentication extends Message {
 
         try {
             json.put("type",type);
-            json.put("AccessToken", User.getAccessToken());
+            json.put("AccessToken", UserModule.getAccessToken());
         } catch (JSONException e) {
             e.printStackTrace();
         }

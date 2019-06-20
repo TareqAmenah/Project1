@@ -1,4 +1,4 @@
-package com.amenah.tareq.project1;
+package com.amenah.tareq.project1.Controllers;
 
 import com.amenah.tareq.project1.ConnectionManager.Messages.Message;
 
@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class User implements Serializable {
+public class UserModule implements Serializable {
 
     private static String username;
     private static String accessToken;
@@ -27,24 +27,28 @@ public class User implements Serializable {
         }
     }
 
-    public static void setFriendsList(List<String> friendsList) {
-        User.friendsList = friendsList;
+    public static void setUsername(String username) {
+        UserModule.username = username;
     }
 
     public static String getUsername() {
         return username;
     }
 
-    public static void setUsername(String username) {
-        User.username = username;
+    public static List<String> getFriendsList() {
+        return friendsList;
     }
 
     public static String getAccessToken() {
         return accessToken;
     }
 
+    public static void setFriendsList(List<String> friendsList) {
+        UserModule.friendsList = friendsList;
+    }
+
     public static void setAccessToken(String accessToken) {
-        User.accessToken = accessToken;
+        UserModule.accessToken = accessToken;
     }
 
     public static void addFriend(String newFriendName) {

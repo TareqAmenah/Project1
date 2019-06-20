@@ -15,10 +15,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.amenah.tareq.project1.RetrofitPackage.ApiServece;
-import com.amenah.tareq.project1.RetrofitPackage.RetrofitServiceManager;
-import com.amenah.tareq.project1.RetrofitPackage.SignUpUserModel;
-import com.amenah.tareq.project1.RetrofitPackage.StanderResponse;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.ApiServece;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.RetrofitServiceManager;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.SignUpUserModel;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.StanderResponse;
 import com.bumptech.glide.Glide;
 import com.wang.avi.AVLoadingIndicatorView;
 

@@ -1,4 +1,4 @@
-package com.amenah.tareq.project1;
+package com.amenah.tareq.project1.ConnectionManager;
 
 public class SendInSocketException extends Exception {
 

@@ -17,22 +17,25 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"></activity>
+        <activity
             android:name=".ChatActivity"
             android:label="@string/title_activity_chat2"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity android:name=".ConnectionSettings" />
-        <activity
-            android:name=".RegisterActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity
-            android:name=".LoginActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".ConnectionSettingsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".RegisterActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity
+            android:name=".LoginActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
     </application>
 
 </manifest>

@@ -1,4 +1,4 @@
-package com.amenah.tareq.project1;
+package com.amenah.tareq.project1.Controllers;
 
 import android.os.Environment;
 import android.util.Log;
@@ -32,8 +32,8 @@ public class StorageManager {
     public static void saveFriendChat(String receiver, List<Message> friendChat) {
 
         try {
-            String filePath = getFolder(CHAT_HISTORY_FOLDER_NAME + File.separator + User.getUsername());
-            File fullFilePath = new File(filePath, User.getUsername() + "#" + receiver + ".slz");
+            String filePath = getFolder(CHAT_HISTORY_FOLDER_NAME + File.separator + UserModule.getUsername());
+            File fullFilePath = new File(filePath, UserModule.getUsername() + "#" + receiver + ".slz");
 
             FileOutputStream fileOutputStream = new FileOutputStream(fullFilePath);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
@@ -123,8 +123,8 @@ public class StorageManager {
     public static List<Message> getFriendChat(String friendName) {
 
         String path = Environment.getExternalStorageDirectory() + File.separator +
-                CHAT_HISTORY_FOLDER_NAME + File.separator + User.getUsername()
-                + File.separator + (User.getUsername() + "#" + friendName + ".slz");
+                CHAT_HISTORY_FOLDER_NAME + File.separator + UserModule.getUsername()
+                + File.separator + (UserModule.getUsername() + "#" + friendName + ".slz");
 
         File file = new File(path);
         if (file.exists()) {
@@ -151,13 +151,31 @@ public class StorageManager {
     public static void deleteFriendChat(String friendName) {
 
         String path = Environment.getExternalStorageDirectory() + File.separator +
-                CHAT_HISTORY_FOLDER_NAME + File.separator + User.getUsername()
-                + File.separator + (User.getUsername() + "#" + friendName + ".slz");
+                CHAT_HISTORY_FOLDER_NAME + File.separator + UserModule.getUsername()
+                + File.separator + (UserModule.getUsername() + "#" + friendName + ".slz");
 
         File file = new File(path);
         if (file.exists()) {
             file.delete();
         }
+
+    }
+
+    public static void deleteAllFriendsChat() {
+
+        List<String> friendsList = UserModule.getFriendsList();
+        for (String s : friendsList) {
+            deleteFriendChat(s);
+        }
+
+        String path = Environment.getExternalStorageDirectory() + File.separator +
+                CHAT_HISTORY_FOLDER_NAME + File.separator + UserModule.getUsername();
+
+        File file = new File(path);
+        if (file.exists()) {
+            file.delete();
+        }
+
 
     }
 

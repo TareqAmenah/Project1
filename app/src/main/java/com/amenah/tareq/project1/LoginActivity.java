@@ -10,10 +10,13 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import com.amenah.tareq.project1.RetrofitPackage.ApiServece;
-import com.amenah.tareq.project1.RetrofitPackage.LoginUserModel;
-import com.amenah.tareq.project1.RetrofitPackage.RetrofitServiceManager;
-import com.amenah.tareq.project1.RetrofitPackage.StanderResponse;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.ApiServece;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.LoginUserModel;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.RetrofitServiceManager;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.StanderResponse;
+import com.amenah.tareq.project1.Controllers.NoCurrentUserExistsException;
+import com.amenah.tareq.project1.Controllers.SharedPreferencesConroller;
+import com.amenah.tareq.project1.Controllers.UserModule;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import retrofit2.Call;
@@ -34,6 +37,12 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (checkForCurrentUser()) {
+            acceptedLogin(SharedPreferencesConroller.receiverName);
+        }
+
+
         setContentView(R.layout.activity_login);
 
         mPassword = findViewById(R.id.password);
@@ -49,6 +58,18 @@ public class LoginActivity extends AppCompatActivity {
                 login();
             }
         });
+
+    }
+
+    private boolean checkForCurrentUser() {
+
+        try {
+            SharedPreferencesConroller.getCurrentUser(this);
+            return true;
+        } catch (NoCurrentUserExistsException e) {
+            e.printStackTrace();
+            return false;
+        }
 
     }
 
@@ -84,8 +105,9 @@ public class LoginActivity extends AppCompatActivity {
 
                         String token = response.body().getData().toString();
                         String receiverName = mReceiverName.getText().toString();
-                        User.setUsername(username);
-                        User.setAccessToken(token);
+                        UserModule.setUsername(username);
+                        UserModule.setAccessToken(token);
+                        SharedPreferencesConroller.saveCurrentUser(LoginActivity.this, receiverName);
                         acceptedLogin(receiverName);
 
                     } else {
@@ -109,27 +131,6 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-
-
-    //check th validation of username and password
-//    public boolean validate() {
-//        boolean valid = true;
-//
-//        String email = metUsername.getText().toString();
-//        String password = metpassword.getText().toString();
-//
-//
-//        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
-//            metpassword.setError("between 4 and 10 alphanumeric characters");
-//            valid = false;
-//        } else {
-//            metpassword.setError(null);
-//        }
-//
-//        return valid;
-//    }
-
-
     public void createAccount(View view) {
         Intent intent = new Intent(this, RegisterActivity.class);
         startActivity(intent);
@@ -140,8 +141,11 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void acceptedLogin(String receiverName) {
-        showToast("Welcome " + User.getUsername() + " ^_^");
-        Intent goToChatActivity = new Intent(LoginActivity.this, ChatActivity.class);
+
+        SharedPreferencesConroller.saveCurrentUser(this, receiverName);
+
+        showToast("Welcome " + UserModule.getUsername() + " ^_^");
+        Intent goToChatActivity = new Intent(LoginActivity.this, MainActivity.class);
         goToChatActivity.putExtra("ReceiverName", receiverName);
         startActivity(goToChatActivity);
     }
@@ -151,7 +155,10 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void toSettings(View view) {
-        Intent goToSettings = new Intent(this, ConnectionSettings.class);
+        Intent goToSettings = new Intent(this, ConnectionSettingsActivity.class);
         startActivity(goToSettings);
     }
+
+
 }
+

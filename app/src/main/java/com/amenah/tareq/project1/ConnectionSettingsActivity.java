@@ -1,5 +1,6 @@
 package com.amenah.tareq.project1;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -7,7 +8,8 @@ import android.widget.EditText;
 
 import com.amenah.tareq.project1.ConnectionManager.ConnectionSettingsController;
 
-public class ConnectionSettings extends AppCompatActivity {
+
+public class ConnectionSettingsActivity extends AppCompatActivity {
 
     EditText mIp;
     EditText mHttpPort;
@@ -31,7 +33,9 @@ public class ConnectionSettings extends AppCompatActivity {
         int socketPort = Integer.valueOf(mSocketPort.getText().toString());
         ConnectionSettingsController.setConnectionSettings(ip, httpPort, socketPort);
 
-        onBackPressed();
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+
     }
 
 }

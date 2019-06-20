@@ -32,6 +32,10 @@ import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Image;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Text;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Message;
 import com.amenah.tareq.project1.ConnectionManager.MyTcpSocket;
+import com.amenah.tareq.project1.Controllers.FileOpen;
+import com.amenah.tareq.project1.Controllers.SharedPreferencesConroller;
+import com.amenah.tareq.project1.Controllers.StorageManager;
+import com.amenah.tareq.project1.Controllers.UserModule;
 import com.nbsp.materialfilepicker.MaterialFilePicker;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
@@ -45,7 +49,6 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
     public static final int PERMISSIONS_REQUEST_CODE = 12;
     public static final int FILE_PICKER_REQUEST_CODE = 11;
     public static final int IMAGE_PICKER_REQUEST_CODE = 10;
-
 
     MyTcpSocket socket;
     ImageButton mbSendText;
@@ -61,8 +64,6 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         setContentView(R.layout.activity_chat);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        getWindow().setBackgroundDrawableResource(R.drawable.gradient_background);
 
         mbSendText = findViewById(R.id.btn_send_text);
         metMessage = findViewById(R.id.input_message);
@@ -82,7 +83,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
                 String s = metMessage.getText().toString();
 
                 if (s != "") {
-                    Message message = new Event_Text(User.getUsername(), receiverName, s);
+                    Message message = new Event_Text(UserModule.getUsername(), receiverName, s);
                     message.sendMessage();
                     addTextMessageToLayout(message);
 
@@ -104,7 +105,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu, menu);
+        getMenuInflater().inflate(R.menu.chat_menu, menu);
         return true;
     }
 
@@ -112,13 +113,15 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_get_image:
-                getImageFromDevice();
+                checkPermissionsAndOpenImagePicker();
                 return true;
             case R.id.action_get_file:
-                getFileFromDevice();
+                checkPermissionsAndOpenFilePicker();
                 return true;
             case R.id.action_delete_chat_history:
                 deleteChatHistory();
+            case R.id.action_log_out:
+                logout();
             default:
                 // Do nothing
         }
@@ -126,12 +129,19 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         return super.onOptionsItemSelected(item);
     }
 
+    private void logout() {
+        SharedPreferencesConroller.deleteCurrentUser(this);
+        StorageManager.deleteAllFriendsChat();
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+    }
+
     public void sendTextMessage(View view) {
 
         String s = metMessage.getText().toString();
 
         if (s != "") {
-            Message message = new Event_Text(User.getUsername(), receiverName, s);
+            Message message = new Event_Text(UserModule.getUsername(), receiverName, s);
             message.sendMessage();
             addTextMessageToLayout(message);
 
@@ -147,7 +157,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 
         final View messageBubble;
 
-        if (message.getSender().equals(User.getUsername())) {
+        if (message.getSender().equals(UserModule.getUsername())) {
 
             messageBubble = messageInflater.inflate(R.layout.my_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
@@ -181,10 +191,10 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         LayoutInflater messageInflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         final View messageBubble;
 
-        if (message.getSender().equals(User.getUsername())) {
+        if (message.getSender().equals(UserModule.getUsername())) {
             messageBubble = messageInflater.inflate(R.layout.my_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
-            messageText.setText("This is image:");
+            messageText.setVisibility(View.INVISIBLE);
             ImageView image = messageBubble.findViewById(R.id.message_image);
             image.getLayoutParams().height = 256;
             image.getLayoutParams().width = 256;
@@ -205,7 +215,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         } else {
             messageBubble = messageInflater.inflate(R.layout.their_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
-            messageText.setText("This is image:");
+            messageText.setVisibility(View.INVISIBLE);
             ImageView image = messageBubble.findViewById(R.id.message_image);
             image.getLayoutParams().height = 256;
             image.getLayoutParams().width = 256;
@@ -239,10 +249,10 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         LayoutInflater messageInflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         final View messageBubble;
 
-        if (message.getSender().equals(User.getUsername())) {
+        if (message.getSender().equals(UserModule.getUsername())) {
             messageBubble = messageInflater.inflate(R.layout.my_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
-            messageText.setText("This is image:");
+            messageText.setVisibility(View.INVISIBLE);
             ImageView image = messageBubble.findViewById(R.id.message_image);
             image.getLayoutParams().height = 128;
             image.getLayoutParams().width = 128;
@@ -263,7 +273,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         } else {
             messageBubble = messageInflater.inflate(R.layout.their_message, null);
             TextView messageText = messageBubble.findViewById(R.id.message_body);
-            messageText.setText("This is image:");
+            messageText.setVisibility(View.INVISIBLE);
             ImageView image = messageBubble.findViewById(R.id.message_image);
             image.getLayoutParams().height = 128;
             image.getLayoutParams().width = 128;
@@ -294,14 +304,10 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
     }
 
     public void getImageFromDevice() {
+
         Intent intent = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, IMAGE_PICKER_REQUEST_CODE);
-    }
-
-    public void getFileFromDevice() {
-
-        checkPermissionsAndOpenFilePicker();
     }
 
     @Override
@@ -318,7 +324,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
                 int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
                 String picturePath = cursor.getString(idx);
 
-                Message message = new Event_Image(User.getUsername(), receiverName, picturePath);
+                Message message = new Event_Image(UserModule.getUsername(), receiverName, picturePath);
                 message.sendMessage();
 
                 addImageMessageToLayout(message);
@@ -329,7 +335,7 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 
                 String path = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
 
-                Message message = new Event_BinaryFile(User.getUsername(), receiverName, path);
+                Message message = new Event_BinaryFile(UserModule.getUsername(), receiverName, path);
                 message.sendMessage();
 
                 addBinaryFileMessageToLayout(message);
@@ -340,16 +346,13 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         }
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_CODE: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    openFilePicker();
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 } else {
-                    showError();
+                    Toast.makeText(this, "Allow external storage reading", Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -360,17 +363,13 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 
         if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
-                showError();
+                Toast.makeText(this, "Allow external storage reading", Toast.LENGTH_SHORT).show();
             } else {
                 ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSIONS_REQUEST_CODE);
             }
         } else {
             openFilePicker();
         }
-    }
-
-    private void showError() {
-        Toast.makeText(this, "Allow external storage reading", Toast.LENGTH_SHORT).show();
     }
 
     private void openFilePicker() {
@@ -382,11 +381,10 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
                 .start();
     }
 
-
     private void getChatHistory() {
 
         List<Message> messages = (List<Message>) StorageManager.getFriendChat(receiverName);
-        User.setChatsOf(receiverName, messages);
+        UserModule.setChatsOf(receiverName, messages);
 
         for (Message message : messages) {
             switch (message.getType()) {
@@ -405,11 +403,10 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
         }
     }
 
-
     private void deleteChatHistory() {
         StorageManager.deleteFriendChat(receiverName);
         clearChatListView();
-        User.deleteFriendChat(receiverName);
+        UserModule.deleteFriendChat(receiverName);
 
     }
 
@@ -425,10 +422,29 @@ public class ChatActivity extends AppCompatActivity implements ChatActivityContr
 
     @Override
     protected void onDestroy() {
-        StorageManager.saveFriendChat(receiverName, User.getChatsOf(receiverName));
+        StorageManager.saveFriendChat(receiverName, UserModule.getChatsOf(receiverName));
         socket.closeConnection();
         Toast.makeText(this, "Socket connection closed!", Toast.LENGTH_LONG).show();
         super.onDestroy();
+    }
+
+    private void checkPermissionsAndOpenImagePicker() {
+        String permission = Manifest.permission.READ_EXTERNAL_STORAGE;
+
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                Toast.makeText(this, "Allow external storage reading", Toast.LENGTH_SHORT).show();
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSIONS_REQUEST_CODE);
+            }
+        } else {
+            getImageFromDevice();
+        }
+    }
+
+
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
 

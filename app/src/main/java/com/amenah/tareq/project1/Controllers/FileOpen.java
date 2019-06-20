@@ -1,4 +1,4 @@
-package com.amenah.tareq.project1;
+package com.amenah.tareq.project1.Controllers;
 
 import android.content.Context;
 import android.content.Intent;
