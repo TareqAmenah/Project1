@@ -8,20 +8,31 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
-import com.amenah.tareq.project1.FriendsListRecyclerView.Friend;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.ApiServece;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.RetrofitServiceManager;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.StanderResponse;
+import com.amenah.tareq.project1.Controllers.UserModule;
 import com.amenah.tareq.project1.FriendsListRecyclerView.FriendsListAdapter;
+import com.amenah.tareq.project1.FriendsListRecyclerView.itemFriend;
 import com.amenah.tareq.project1.R;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class FriendsListFragment extends Fragment {
 
     private View v;
     private RecyclerView myRecyclerView;
-    private List<Friend> friendsList;
+    private List<itemFriend> friendsList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -39,18 +50,60 @@ public class FriendsListFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        friendsList = new ArrayList<>();
-        friendsList.add(new Friend("Ahmad", "url"));
-        friendsList.add(new Friend("Alaa", "url"));
-        friendsList.add(new Friend("Sami", "url"));
-        friendsList.add(new Friend("Amjad", "url"));
-        friendsList.add(new Friend("Nader", "url"));
-        friendsList.add(new Friend("Mohammad", "url"));
-        friendsList.add(new Friend("Khales", "url"));
-        friendsList.add(new Friend("Omar", "url"));
-        friendsList.add(new Friend("Mouaz", "url"));
-        friendsList.add(new Friend("Ammar", "url"));
-        friendsList.add(new Friend("Nour", "url"));
+
+        initializeAdapter();
+
+//        friendsList = new ArrayList<>();
+//        friendsList.add(new itemFriend("Ahmad", "url"));
+//        friendsList.add(new itemFriend("alaa", "url"));
+//        friendsList.add(new itemFriend("sami", "url"));
+//        friendsList.add(new itemFriend("amjad", "url"));
+//        friendsList.add(new itemFriend("nader", "url"));
+//        friendsList.add(new itemFriend("Mohammad", "url"));
+//        friendsList.add(new itemFriend("Khales", "url"));
+//        friendsList.add(new itemFriend("Omar", "url"));
+//        friendsList.add(new itemFriend("Mouaz", "url"));
+//        friendsList.add(new itemFriend("Ammar", "url"));
+//        friendsList.add(new itemFriend("Nour", "url"));
 
     }
+
+    void initializeAdapter() {
+
+        friendsList = new ArrayList<>();
+
+        ApiServece retrofitManager = RetrofitServiceManager.retrofitManager;
+        retrofitManager.getFriends(UserModule.getUsername()).enqueue(new Callback<StanderResponse>() {
+            @Override
+            public void onResponse(Call<StanderResponse> call, Response<StanderResponse> response) {
+
+                if (response.body().getStatus()) {
+
+                    UserModule.clearFriendList();
+
+                    JsonArray jsonArray = (JsonArray) response.body().getData();
+                    for (JsonElement jsonElement : jsonArray) {
+                        friendsList.add(new itemFriend(jsonElement.getAsString(), "url"));
+                        UserModule.addFriend(jsonElement.getAsString());
+                    }
+
+                } else {
+                    showToast(response.body().getErrors().toString());
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<StanderResponse> call, Throwable t) {
+
+            }
+        });
+    }
+
+
+    private void showToast(String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+    }
+
+
 }

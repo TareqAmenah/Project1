@@ -2,7 +2,6 @@ package com.amenah.tareq.project1.ConnectionManager;
 
 import android.util.Log;
 
-import com.amenah.tareq.project1.ChatActivityControler;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Authentication;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_BinaryFile;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Image;
@@ -28,12 +27,11 @@ public class MyTcpSocket extends Thread {
     private static DataOutputStream writer;
     private static Socket socket;
 
-    ChatActivityControler chatActivityControler;
+
     private String charsetName = "UTF-8";
 
-    public MyTcpSocket(String serverName, int portNumber, ChatActivityControler chatActivityControler) {
+    public MyTcpSocket(String serverName, int portNumber) {
         this.serverName = serverName;
-        this.chatActivityControler = chatActivityControler;
         this.portNumber = portNumber;
 
     }
@@ -130,7 +128,6 @@ public class MyTcpSocket extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         Log.v("**************", "Socket connection closed");
     }
 
@@ -148,6 +145,10 @@ public class MyTcpSocket extends Thread {
                 (b[1] & 0xFF) << 8 |
                 (b[2] & 0xFF) << 16 |
                 (b[3] & 0xFF) << 24;
+    }
+
+    public static boolean isConnected() {
+        return socket.isConnected();
     }
 
     class ServerListener extends Thread{
@@ -178,7 +179,7 @@ public class MyTcpSocket extends Thread {
                             switch (jsonMessage.getString("type")){
 
                                 case "Text":
-                                    chatActivityControler.addTextMessageToLayout(new Event_Text(jsonMessage));
+                                    new Event_Text(jsonMessage);
                                     break;
 
                                 case "Image":
@@ -192,7 +193,7 @@ public class MyTcpSocket extends Thread {
                                     String imagePath = StorageManager.saveImage(imageBytes,
                                             jsonMessage.getString("sender"), jsonMessage.getString("extension"));
 
-                                    chatActivityControler.addImageMessageToLayout(new Event_Image(jsonMessage, imagePath));
+                                    new Event_Image(jsonMessage, imagePath);
 
                                     break;
 
@@ -208,7 +209,7 @@ public class MyTcpSocket extends Thread {
                                     String filePath = StorageManager.saveBinaryFile(fileBytes,
                                             jsonMessage.getString("sender"), jsonMessage.getString("extension"));
 
-                                    chatActivityControler.addBinaryFileMessageToLayout(new Event_BinaryFile(jsonMessage, filePath));
+                                    new Event_BinaryFile(jsonMessage, filePath);
 
                                     break;
 

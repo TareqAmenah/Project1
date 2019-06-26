@@ -1,7 +1,9 @@
 package com.amenah.tareq.project1.ChatsListRecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.amenah.tareq.project1.ChatActivity;
 import com.amenah.tareq.project1.R;
 
 import java.util.List;
@@ -36,16 +39,29 @@ public class ChatsListAdapter extends RecyclerView.Adapter<ChatsListAdapter.MyVi
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MyViewHolder myViewHolder, int i) {
+    public void onBindViewHolder(@NonNull MyViewHolder myViewHolder, final int i) {
 
         myViewHolder.tv_username.setText(chatsList.get(i).getUsername());
         myViewHolder.tv_lastMessage.setText(chatsList.get(i).getLastMessage());
         myViewHolder.img.setImageResource(R.drawable.man);
+        myViewHolder.layout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context, ChatActivity.class);
+                intent.putExtra("ReceiverName", chatsList.get(i).getUsername());
+                context.startActivity(intent);
+
+            }
+        });
+
+
 
     }
 
     @Override
     public int getItemCount() {
+        if (chatsList == null)
+            return 0;
         return chatsList.size();
     }
 
@@ -54,11 +70,12 @@ public class ChatsListAdapter extends RecyclerView.Adapter<ChatsListAdapter.MyVi
         public TextView tv_username;
         private TextView tv_lastMessage;
         private ImageView img;
-
+        public ConstraintLayout layout;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
 
+            layout = itemView.findViewById(R.id.item_chat);
             tv_username = itemView.findViewById(R.id.item_chat_user_name);
             tv_lastMessage = itemView.findViewById(R.id.item_chat_last_message);
             img = itemView.findViewById(R.id.item_chat_user_image);

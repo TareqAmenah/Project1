@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.amenah.tareq.project1.ConnectionManager.Messages.Message;
+import com.amenah.tareq.project1.MyCustomPair;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,10 +28,12 @@ public class StorageManager {
     private static final String CHAT_HISTORY_FOLDER_NAME = MAIN_FOLDER_NAME + File.separator + "Chat history";
     private static final String IMAGE_FOLDER_NAME = MAIN_FOLDER_NAME + File.separator + "Media" + File.separator + "Images";
     private static final String BINARY_FILE_FOLDER_NAME = MAIN_FOLDER_NAME + File.separator + "Media" + File.separator + "Binary files";
+    private static final String CHATS_LIST_FILE = "ChatsList.slz";
 
 
-    public static void saveFriendChat(String receiver, List<Message> friendChat) {
+    public static void saveFriendChat(String receiver) {
 
+        List<Message> friendChat = UserModule.getChatsOf(receiver);
         try {
             String filePath = getFolder(CHAT_HISTORY_FOLDER_NAME + File.separator + UserModule.getUsername());
             File fullFilePath = new File(filePath, UserModule.getUsername() + "#" + receiver + ".slz");
@@ -53,6 +56,46 @@ public class StorageManager {
 
     }
 
+    public static void saveChatsList() {
+
+        List<MyCustomPair> chatList = new ArrayList<>();
+
+        if (UserModule.getFriendsList() == null)
+            return;
+
+        for (String s : UserModule.getFriendsList()) {
+            List<Message> list = UserModule.getChatsOf(s);
+            if (list != null && list.size() != 0) {
+                if (list.size() == 1)
+                    chatList.add(new MyCustomPair(s, list.get(0).getText()));
+                else
+                    chatList.add(new MyCustomPair(s, list.get(list.size() - 1).getText()));
+            }
+        }
+
+        String filePath = null;
+        try {
+            filePath = getFolder(CHAT_HISTORY_FOLDER_NAME + File.separator + UserModule.getUsername());
+            File fullFilePath = new File(filePath, CHATS_LIST_FILE);
+
+            FileOutputStream fileOutputStream = new FileOutputStream(fullFilePath);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(chatList);
+            objectOutputStream.close();
+            fileOutputStream.close();
+
+            Log.v("***************", "Object has been serialized");
+
+        } catch (FileNoteCreatedException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
 
     public static String saveImage(byte[] fileBytes, String sender, String ext) {
 
@@ -147,6 +190,33 @@ public class StorageManager {
 
     }
 
+    public static List<MyCustomPair> getChatsList() {
+        String path = Environment.getExternalStorageDirectory() + File.separator +
+                CHAT_HISTORY_FOLDER_NAME + File.separator + UserModule.getUsername()
+                + File.separator + CHATS_LIST_FILE;
+
+        File file = new File(path);
+        if (file.exists()) {
+            FileInputStream fileInputStream = null;
+            try {
+                fileInputStream = new FileInputStream(file);
+                ObjectInputStream in = new ObjectInputStream(fileInputStream);
+                ArrayList<MyCustomPair> x = (ArrayList<MyCustomPair>) in.readObject();
+                return x;
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        return null;
+
+    }
+
 
     public static void deleteFriendChat(String friendName) {
 
@@ -161,11 +231,15 @@ public class StorageManager {
 
     }
 
+
     public static void deleteAllFriendsChat() {
+
+        deleteChatsList();
 
         List<String> friendsList = UserModule.getFriendsList();
         for (String s : friendsList) {
-            deleteFriendChat(s);
+            if (s != null)
+                deleteFriendChat(s);
         }
 
         String path = Environment.getExternalStorageDirectory() + File.separator +
@@ -177,6 +251,21 @@ public class StorageManager {
         }
 
 
+    }
+
+    public static void deleteChatsList() {
+        String path = Environment.getExternalStorageDirectory() + File.separator +
+                CHAT_HISTORY_FOLDER_NAME + File.separator + UserModule.getUsername()
+                + File.separator + CHATS_LIST_FILE;
+
+        File file = new File(path);
+        if (file.exists())
+            file.delete();
+    }
+
+    public static void clearAll() {
+        deleteAllFriendsChat();
+        deleteChatsList();
     }
 
 }

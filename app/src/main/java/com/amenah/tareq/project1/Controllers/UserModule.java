@@ -17,7 +17,11 @@ public class UserModule implements Serializable {
 
 
     public static List<Message> getChatsOf(String friendName) {
+        if (!friendsChats.containsKey(friendName))
+            friendsChats.put(friendName, new ArrayList<Message>());
+
         return friendsChats.get(friendName);
+
     }
 
     public static void setChatsOf(String friendName, List<Message> messages) {
@@ -52,6 +56,8 @@ public class UserModule implements Serializable {
     }
 
     public static void addFriend(String newFriendName) {
+        if (friendsList == null)
+            friendsList = new ArrayList<>();
         friendsList.add(newFriendName);
     }
 
@@ -68,5 +74,21 @@ public class UserModule implements Serializable {
         friendsChats.get(friendName).clear();
     }
 
+    public static void clearFriendList() {
+        if (friendsList != null)
+            friendsList.clear();
+    }
+
+    public static void clearAll() {
+        username = null;
+        accessToken = null;
+
+        for (String s : friendsList) {
+            friendsChats.get(s).clear();
+        }
+        friendsChats = null;
+        friendsList = null;
+
+    }
 
 }

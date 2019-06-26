@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.amenah.tareq.project1.ConnectionManager.Constants;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.ApiServece;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.LoginUserModel;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.RetrofitServiceManager;
@@ -17,6 +18,7 @@ import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.StanderRespon
 import com.amenah.tareq.project1.Controllers.NoCurrentUserExistsException;
 import com.amenah.tareq.project1.Controllers.SharedPreferencesConroller;
 import com.amenah.tareq.project1.Controllers.UserModule;
+import com.google.gson.JsonElement;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import retrofit2.Call;
@@ -98,12 +100,11 @@ public class LoginActivity extends AppCompatActivity {
                     Log.v("Request response",response.toString());
                     mLoginLoader.hide();
                     mBlur.setVisibility(View.INVISIBLE);
-                    mUsername.setText("");
-                    mPassword.setText("");
 
                     if (response.body().getStatus()) {
 
-                        String token = response.body().getData().toString();
+                        JsonElement json = response.body().getData();
+                        String token = json.getAsString();
                         String receiverName = mReceiverName.getText().toString();
                         UserModule.setUsername(username);
                         UserModule.setAccessToken(token);
@@ -113,8 +114,6 @@ public class LoginActivity extends AppCompatActivity {
                     } else {
                         showToast(response.body().getErrors().toString());
                     }
-
-
 
                 }
 
@@ -142,12 +141,28 @@ public class LoginActivity extends AppCompatActivity {
 
     private void acceptedLogin(String receiverName) {
 
-        SharedPreferencesConroller.saveCurrentUser(this, receiverName);
+        String IPAddress = Constants.IPAddress;
+        int portNumber = Constants.socketPortNumber;
 
-        showToast("Welcome " + UserModule.getUsername() + " ^_^");
-        Intent goToChatActivity = new Intent(LoginActivity.this, MainActivity.class);
-        goToChatActivity.putExtra("ReceiverName", receiverName);
-        startActivity(goToChatActivity);
+        MyApp myApp = (MyApp) getApplication();
+        myApp.setSocketDetiels(IPAddress, portNumber);
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        //TODO test this condition
+        if (myApp.getSocket().isConnected()) {
+
+            SharedPreferencesConroller.saveCurrentUser(this, receiverName);
+
+            showToast("Welcome " + UserModule.getUsername() + " ^_^");
+            Intent goToChatActivity = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(goToChatActivity);
+        } else
+            showToast("Socket connection field!");
+
     }
 
     private void showToast(String message){

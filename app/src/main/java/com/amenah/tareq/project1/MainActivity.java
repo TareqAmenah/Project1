@@ -9,8 +9,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
-import com.amenah.tareq.project1.Fragments.*;
+import com.amenah.tareq.project1.Controllers.StorageManager;
+import com.amenah.tareq.project1.Controllers.UserModule;
+import com.amenah.tareq.project1.Fragments.ChatsListFragment;
+import com.amenah.tareq.project1.Fragments.FriendsListFragment;
+import com.amenah.tareq.project1.Fragments.GamesListFragment;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -33,15 +38,19 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navigation = findViewById(R.id.navigation);
 
 
+
         fm.beginTransaction().add(R.id.main_container, gamesListFragment, "3").hide(gamesListFragment).commit();
         fm.beginTransaction().add(R.id.main_container, friendsListFragment, "2").hide(friendsListFragment).commit();
         fm.beginTransaction().add(R.id.main_container, chatsListFragment, "1").commit();
+
+//        ((ChatsListFragment)chatsListFragment).initializeAdapter();
 
         navigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.navigation_chats:
+                        ((ChatsListFragment) chatsListFragment).initializeAdapter();
                         fm.beginTransaction().hide(active).show(chatsListFragment).commit();
                         active = chatsListFragment;
                         return true;
@@ -60,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
@@ -71,5 +79,15 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onDestroy() {
+        ((MyApp) getApplication()).getSocket().closeConnection();
+        Toast.makeText(this, "Socket connection closed!", Toast.LENGTH_LONG).show();
+        StorageManager.clearAll();
+        UserModule.clearAll();
+        super.onDestroy();
+    }
+
 
 }

@@ -1,5 +1,6 @@
 package com.amenah.tareq.project1.ConnectionManager.Messages;
 
+import com.amenah.tareq.project1.ChatActivity;
 import com.amenah.tareq.project1.ConnectionManager.MyTcpSocket;
 import com.amenah.tareq.project1.ConnectionManager.SendInSocketException;
 import com.amenah.tareq.project1.Controllers.UserModule;
@@ -70,6 +71,7 @@ public abstract class Message implements Serializable {
                 MyTcpSocket.sendJson(this.getJson());
                 MyTcpSocket.sendBinaryFile(this.getBytes());
                 saveMessage(receiver); // friend name is the receiver name
+
             } catch (SendInSocketException e) {
                 e.printStackTrace();
             }
@@ -88,6 +90,8 @@ public abstract class Message implements Serializable {
 
     protected void saveMessage(String friendName) {
         UserModule.addMessage(friendName, this);
+        ChatActivity.addMessageToLayout(friendName);
+
     }
 
 

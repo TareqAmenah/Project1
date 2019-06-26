@@ -8,21 +8,17 @@
     tools:context=".ChatActivity"
     tools:showIn="@layout/activity_chat">
 
-    <ScrollView
-        android:layout_width="0dp"
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/message_list_recyclerview"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_margin="8dp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
-            android:id="@+id/massagesLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </ScrollView>
+    </android.support.v7.widget.RecyclerView>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/linearLayout"
