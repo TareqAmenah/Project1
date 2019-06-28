@@ -212,7 +212,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void acceptedRegister(String username, String token){
         showToast("Welcome " + username + " ^_^");
-        Intent goToChatActivity = new Intent(RegisterActivity.this, ChatActivity.class);
+        Intent goToChatActivity = new Intent(RegisterActivity.this, MainActivity.class);
         goToChatActivity.putExtra("Token",token);
         startActivity(goToChatActivity);
     }

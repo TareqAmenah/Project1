@@ -41,19 +41,23 @@ public class ChatActivity extends AppCompatActivity {
     public static final int PERMISSIONS_REQUEST_CODE = 12;
     public static final int FILE_PICKER_REQUEST_CODE = 11;
     public static final int IMAGE_PICKER_REQUEST_CODE = 10;
+
     public static boolean isActive = false;
     public static String receiverName;
     private static RecyclerView messagesListRecyclerView;
     private static List<Message> messageList;
     private static MessageListAdapter messageListAdapter;
+
     private MyTcpSocket socket;
     private ImageButton mbSendText;
     private EditText metMessage;
 
     public static void addMessageToLayout(String friendName) {
 
-        if (isActive) {
-            if (friendName == receiverName) {
+
+        if (isActive && messageList.size() > 0) {
+
+            if (friendName.equals(receiverName)) {
 
                 messageListAdapter.notifyItemInserted(messageList.size() - 1);
                 messagesListRecyclerView.post(new Runnable() {
@@ -99,232 +103,11 @@ public class ChatActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-//    public void sendTextMessage(View view) {
-//
-//        String s = metMessage.getText().toString();
-//
-//        if (s != "") {
-//            Message message = new Event_Text(UserModule.getUsername(), receiverName, s);
-//            message.sendMessage();
-//            addTextMessageToLayout(message);
-//
-//        }
-//
-//        metMessage.setText("");
-//    }
-
-//    @Override
-//    public void addTextMessageToLayout(Message message) {
-//
-////        LayoutInflater messageInflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-////
-////        final View messageBubble;
-////
-////        if (message.getSender().equals(UserModule.getUsername())) {
-////
-////            messageBubble = messageInflater.inflate(R.layout.my_message, null);
-////            TextView messageText = messageBubble.findViewById(R.id.message_body);
-////            messageText.setText(message.getText());
-////
-////
-////        } else {
-////
-////            messageBubble = messageInflater.inflate(R.layout.their_message, null);
-////            TextView messageText = messageBubble.findViewById(R.id.message_body);
-////            messageText.setText(message.getText());
-////
-////
-////        }
-////
-////        runOnUiThread(new Runnable() {
-////            @Override
-////            public void run() {
-////                messagesLayout.addView(messageBubble);
-////            }
-////        });
-//
-//
-//        //messageListAdapter.notifyItemInserted(messageList.size()-1);
-//
-//
-//    }
-//
-//    @Override
-//    public void addImageMessageToLayout(final Message message) {
-//
-////        Bitmap imageBitmap = BitmapFactory.decodeFile(message.getFilePath());
-////
-////        LayoutInflater messageInflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-////        final View messageBubble;
-////
-////        if (message.getSender().equals(UserModule.getUsername())) {
-////            messageBubble = messageInflater.inflate(R.layout.my_message, null);
-////            TextView messageText = messageBubble.findViewById(R.id.message_body);
-////            messageText.setVisibility(View.INVISIBLE);
-////            ImageView image = messageBubble.findViewById(R.id.message_image);
-////            image.getLayoutParams().height = 256;
-////            image.getLayoutParams().width = 256;
-////            image.setOnClickListener(new View.OnClickListener() {
-////                @Override
-////                public void onClick(View view) {
-////                    File myFile = new File(message.getFilePath());
-////                    try {
-////                        FileOpen.openFile(ChatActivity.this, myFile);
-////                    } catch (IOException e) {
-////                        e.printStackTrace();
-////                        Toast.makeText(ChatActivity.this, "Cann't open this file!", Toast.LENGTH_SHORT).show();
-////                    }
-////                }
-////            });
-////            image.setImageBitmap(imageBitmap);
-////
-////        } else {
-////            messageBubble = messageInflater.inflate(R.layout.their_message, null);
-////            TextView messageText = messageBubble.findViewById(R.id.message_body);
-////            messageText.setVisibility(View.INVISIBLE);
-////            ImageView image = messageBubble.findViewById(R.id.message_image);
-////            image.getLayoutParams().height = 256;
-////            image.getLayoutParams().width = 256;
-////            image.setImageBitmap(imageBitmap);
-////            image.setOnClickListener(new View.OnClickListener() {
-////                @Override
-////                public void onClick(View view) {
-////                    File myFile = new File(message.getFilePath());
-////                    try {
-////                        FileOpen.openFile(ChatActivity.this, myFile);
-////                    } catch (IOException e) {
-////                        e.printStackTrace();
-////                        Toast.makeText(ChatActivity.this, "Cann't open this file!", Toast.LENGTH_SHORT).show();
-////                    }
-////                }
-////            });
-////        }
-////
-////
-////        runOnUiThread(new Runnable() {
-////            @Override
-////            public void run() {
-////                messagesLayout.addView(messageBubble);
-////            }
-////        });
-//
-//        messageListAdapter.notifyItemInserted(messageList.size()-1);
-//
-//    }
-//
-//    @Override
-//    public void addBinaryFileMessageToLayout(final Message message) {
-////        LayoutInflater messageInflater = (LayoutInflater) this.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-////        final View messageBubble;
-////
-////        if (message.getSender().equals(UserModule.getUsername())) {
-////            messageBubble = messageInflater.inflate(R.layout.my_message, null);
-////            TextView messageText = messageBubble.findViewById(R.id.message_body);
-////            messageText.setVisibility(View.INVISIBLE);
-////            ImageView image = messageBubble.findViewById(R.id.message_image);
-////            image.getLayoutParams().height = 128;
-////            image.getLayoutParams().width = 128;
-////            image.setOnClickListener(new View.OnClickListener() {
-////                @Override
-////                public void onClick(View view) {
-////                    File myFile = new File(message.getFilePath());
-////                    try {
-////                        FileOpen.openFile(ChatActivity.this, myFile);
-////                    } catch (IOException e) {
-////                        e.printStackTrace();
-////                        Toast.makeText(ChatActivity.this, "Cann't open this file!", Toast.LENGTH_SHORT).show();
-////                    }
-////                }
-////            });
-////            image.setImageResource(R.drawable.ic_apk_box);
-////
-////        } else {
-////            messageBubble = messageInflater.inflate(R.layout.their_message, null);
-////            TextView messageText = messageBubble.findViewById(R.id.message_body);
-////            messageText.setVisibility(View.INVISIBLE);
-////            ImageView image = messageBubble.findViewById(R.id.message_image);
-////            image.getLayoutParams().height = 128;
-////            image.getLayoutParams().width = 128;
-////            image.setOnClickListener(new View.OnClickListener() {
-////                @Override
-////                public void onClick(View view) {
-////                    File myFile = new File(message.getFilePath());
-////                    try {
-////                        FileOpen.openFile(ChatActivity.this, myFile);
-////                    } catch (IOException e) {
-////                        e.printStackTrace();
-////                        Toast.makeText(ChatActivity.this, "Cann't open this file!", Toast.LENGTH_SHORT).show();
-////                    }
-////                }
-////            });
-////
-////            image.setImageResource(R.drawable.ic_apk_box);
-////        }
-////
-////
-////        runOnUiThread(new Runnable() {
-////            @Override
-////            public void run() {
-////                messagesLayout.addView(messageBubble);
-////            }
-////        });
-//
-//        messageListAdapter.notifyItemInserted(messageList.size()-1);
-//
-//    }
-
     public void getImageFromDevice() {
 
         Intent intent = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent, IMAGE_PICKER_REQUEST_CODE);
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        getWindow().setBackgroundDrawableResource(R.mipmap.chat_background);
-
-        mbSendText = findViewById(R.id.btn_send_text);
-        metMessage = findViewById(R.id.input_message);
-        messagesListRecyclerView = findViewById(R.id.message_list_recyclerview);
-
-        receiverName = getIntent().getStringExtra("ReceiverName");
-
-        getSupportActionBar().setTitle(receiverName);
-        getSupportActionBar().setIcon(R.drawable.ic_person);
-
-        mbSendText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String s = metMessage.getText().toString();
-
-                if (s != "") {
-                    Message message = new Event_Text(UserModule.getUsername(), receiverName, s);
-                    message.sendMessage();
-                    //addTextMessageToLayout(message);
-
-                }
-
-                metMessage.setText("");
-            }
-        });
-
-        // set the adapter of the recycler view
-        messageList = UserModule.getChatsOf(receiverName);
-        messageListAdapter = new MessageListAdapter(messageList, this);
-        messagesListRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        messagesListRecyclerView.setAdapter(messageListAdapter);
-
-
-        socket = ((MyApp) getApplication()).getSocket();
-
-        //getChatHistory();
-
     }
 
     @Override
@@ -361,28 +144,6 @@ public class ChatActivity extends AppCompatActivity {
                 .withTitle("Sample title")
                 .start();
     }
-//
-//    private void getChatHistory() {
-//
-//        List<Message> messages = (List<Message>) StorageManager.getFriendChat(receiverName);
-//        UserModule.setChatsOf(receiverName, messages);
-//
-//        for (Message message : messages) {
-//            switch (message.getType()) {
-//                case "Text":
-//                    addTextMessageToLayout(message);
-//                    break;
-//
-//                case "Image":
-//                    addImageMessageToLayout(message);
-//                    break;
-//
-//                case "BinaryFile":
-//                    addBinaryFileMessageToLayout(message);
-//                    break;
-//            }
-//        }
-//    }
 
     private void deleteChatHistory() {
         StorageManager.deleteFriendChat(receiverName);
@@ -446,6 +207,53 @@ public class ChatActivity extends AppCompatActivity {
         int size = messageList.size();
         messageList.clear();
         messageListAdapter.notifyItemRangeChanged(0, size);
+
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_chat);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        getWindow().setBackgroundDrawableResource(R.mipmap.chat_background);
+
+        mbSendText = findViewById(R.id.btn_send_text);
+        metMessage = findViewById(R.id.input_message);
+        messagesListRecyclerView = findViewById(R.id.message_list_recyclerview);
+
+        receiverName = getIntent().getStringExtra("ReceiverName");
+
+        getSupportActionBar().setTitle(receiverName);
+        getSupportActionBar().setIcon(R.drawable.man);
+
+        mbSendText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String s = metMessage.getText().toString();
+
+                if (!s.equals("")) {
+                    Message message = new Event_Text(UserModule.getUsername(), receiverName, s);
+                    message.sendMessage();
+                    addMessageToLayout(receiverName);
+
+                }
+
+                metMessage.setText("");
+            }
+        });
+
+        // set the adapter of the recycler view
+        messageList = UserModule.getChatsOf(receiverName);
+        messageListAdapter = new MessageListAdapter(messageList, this);
+        messagesListRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        messagesListRecyclerView.setAdapter(messageListAdapter);
+
+
+        socket = ((MyApp) getApplication()).getSocket();
+
+        isActive = true;
 
     }
 

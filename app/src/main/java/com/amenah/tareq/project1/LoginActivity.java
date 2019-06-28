@@ -30,7 +30,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private EditText mUsername;
     private EditText mPassword;
-    private EditText mReceiverName;
     FrameLayout mBlur;
     AVLoadingIndicatorView mLoginLoader;
     Button mLogin;
@@ -40,16 +39,15 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (checkForCurrentUser()) {
-            acceptedLogin(SharedPreferencesConroller.receiverName);
-        }
+//        if (checkForCurrentUser()) {
+//            acceptedLogin(SharedPreferencesConroller.receiverName);
+//        }
 
 
         setContentView(R.layout.activity_login);
 
         mPassword = findViewById(R.id.password);
         mUsername = findViewById(R.id.user_name);
-        mReceiverName = findViewById(R.id.receiver_name);
         mLoginLoader = findViewById(R.id.login_loader);
         mBlur = findViewById(R.id.background_blur_login);
         mLogin = findViewById(R.id.sign_in);
@@ -105,11 +103,10 @@ public class LoginActivity extends AppCompatActivity {
 
                         JsonElement json = response.body().getData();
                         String token = json.getAsString();
-                        String receiverName = mReceiverName.getText().toString();
-                        UserModule.setUsername(username);
-                        UserModule.setAccessToken(token);
-                        SharedPreferencesConroller.saveCurrentUser(LoginActivity.this, receiverName);
-                        acceptedLogin(receiverName);
+                        UserModule.initializeUser(username, token);
+
+                        // SharedPreferencesConroller.saveCurrentUser(LoginActivity.this, receiverName);
+                        acceptedLogin();
 
                     } else {
                         showToast(response.body().getErrors().toString());
@@ -139,7 +136,7 @@ public class LoginActivity extends AppCompatActivity {
         showToast("Wrong user details!");
     }
 
-    private void acceptedLogin(String receiverName) {
+    private void acceptedLogin() {
 
         String IPAddress = Constants.IPAddress;
         int portNumber = Constants.socketPortNumber;
@@ -155,7 +152,7 @@ public class LoginActivity extends AppCompatActivity {
         //TODO test this condition
         if (myApp.getSocket().isConnected()) {
 
-            SharedPreferencesConroller.saveCurrentUser(this, receiverName);
+            //SharedPreferencesConroller.saveCurrentUser(this, receiverName);
 
             showToast("Welcome " + UserModule.getUsername() + " ^_^");
             Intent goToChatActivity = new Intent(LoginActivity.this, MainActivity.class);

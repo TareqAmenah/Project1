@@ -65,6 +65,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_user_name"
+                    android:textColor="#f0f0f0"
                     android:inputType="textEmailAddress"
                     android:maxLines="1"
                     android:singleLine="true" />
@@ -82,6 +83,7 @@
                     android:hint="Email"
                     android:imeActionId="6"
                     android:imeOptions="actionUnspecified"
+                    android:textColor="#f0f0f0"
                     android:inputType="textEmailAddress"
                     android:maxLines="1"
                     android:singleLine="true" />
@@ -99,6 +101,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_password"
+                    android:textColor="#f0f0f0"
                     android:imeActionId="6"
                     android:imeOptions="actionUnspecified"
                     android:inputType="textPassword"
@@ -116,6 +119,7 @@
                 <EditText
                     android:id="@+id/re_password"
                     android:layout_width="match_parent"
+                    android:textColor="#f0f0f0"
                     android:layout_height="wrap_content"
                     android:hint="@string/re_enter_password"
                     android:imeActionId="6"

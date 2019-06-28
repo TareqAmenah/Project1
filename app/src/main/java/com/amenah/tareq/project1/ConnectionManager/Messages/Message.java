@@ -1,6 +1,5 @@
 package com.amenah.tareq.project1.ConnectionManager.Messages;
 
-import com.amenah.tareq.project1.ChatActivity;
 import com.amenah.tareq.project1.ConnectionManager.MyTcpSocket;
 import com.amenah.tareq.project1.ConnectionManager.SendInSocketException;
 import com.amenah.tareq.project1.Controllers.UserModule;
@@ -85,12 +84,10 @@ public abstract class Message implements Serializable {
                 e.printStackTrace();
             }
         }
-
     }
 
     protected void saveMessage(String friendName) {
         UserModule.addMessage(friendName, this);
-        ChatActivity.addMessageToLayout(friendName);
 
     }
 

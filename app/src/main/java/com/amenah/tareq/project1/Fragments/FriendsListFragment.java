@@ -15,7 +15,7 @@ import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.RetrofitServi
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.StanderResponse;
 import com.amenah.tareq.project1.Controllers.UserModule;
 import com.amenah.tareq.project1.FriendsListRecyclerView.FriendsListAdapter;
-import com.amenah.tareq.project1.FriendsListRecyclerView.itemFriend;
+import com.amenah.tareq.project1.FriendsListRecyclerView.ItemUser;
 import com.amenah.tareq.project1.R;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -32,16 +32,14 @@ public class FriendsListFragment extends Fragment {
 
     private View v;
     private RecyclerView myRecyclerView;
-    private List<itemFriend> friendsList;
+    private List<ItemUser> friendsList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         v = inflater.inflate(R.layout.fragment_friends_list, container, false);
         myRecyclerView = v.findViewById(R.id.friend_list_recyclerview);
-        FriendsListAdapter friendsListAdapter = new FriendsListAdapter(getActivity(), friendsList);
-        myRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
-        myRecyclerView.setAdapter(friendsListAdapter);
+        setFriendsListAdapter(friendsList);
 
         return v;
     }
@@ -51,24 +49,10 @@ public class FriendsListFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
 
-        initializeAdapter();
-
-//        friendsList = new ArrayList<>();
-//        friendsList.add(new itemFriend("Ahmad", "url"));
-//        friendsList.add(new itemFriend("alaa", "url"));
-//        friendsList.add(new itemFriend("sami", "url"));
-//        friendsList.add(new itemFriend("amjad", "url"));
-//        friendsList.add(new itemFriend("nader", "url"));
-//        friendsList.add(new itemFriend("Mohammad", "url"));
-//        friendsList.add(new itemFriend("Khales", "url"));
-//        friendsList.add(new itemFriend("Omar", "url"));
-//        friendsList.add(new itemFriend("Mouaz", "url"));
-//        friendsList.add(new itemFriend("Ammar", "url"));
-//        friendsList.add(new itemFriend("Nour", "url"));
 
     }
 
-    void initializeAdapter() {
+    public void initializeAdapter() {
 
         friendsList = new ArrayList<>();
 
@@ -83,7 +67,7 @@ public class FriendsListFragment extends Fragment {
 
                     JsonArray jsonArray = (JsonArray) response.body().getData();
                     for (JsonElement jsonElement : jsonArray) {
-                        friendsList.add(new itemFriend(jsonElement.getAsString(), "url"));
+                        friendsList.add(new ItemUser(jsonElement.getAsString(), "url"));
                         UserModule.addFriend(jsonElement.getAsString());
                     }
 
@@ -103,6 +87,15 @@ public class FriendsListFragment extends Fragment {
 
     private void showToast(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+    }
+
+    public void setFriendsListAdapter(List<ItemUser> list) {
+        if (list == null || list.size() == 0)
+            list = friendsList;
+        FriendsListAdapter friendsListAdapter = new FriendsListAdapter(getActivity(), list);
+        myRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        myRecyclerView.setAdapter(friendsListAdapter);
+
     }
 
 

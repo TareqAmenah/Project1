@@ -84,10 +84,20 @@ public class UserModule implements Serializable {
         accessToken = null;
 
         for (String s : friendsList) {
-            friendsChats.get(s).clear();
+            List<Message> list = friendsChats.get(s);
+            if (list != null)
+                list.clear();
         }
         friendsChats = null;
         friendsList = null;
+
+    }
+
+    public static void initializeUser(String name, String token) {
+        username = name;
+        accessToken = token;
+        friendsList = new ArrayList<>();
+        friendsChats = new HashMap<>();
 
     }
 

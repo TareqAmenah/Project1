@@ -25,7 +25,7 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
 
 
     private final int TYPE_ME = 0;
-    private final int TYPE_THEME = 0;
+    private final int TYPE_THEME = 1;
     private Context context;
     private List<Message> messageList;
 

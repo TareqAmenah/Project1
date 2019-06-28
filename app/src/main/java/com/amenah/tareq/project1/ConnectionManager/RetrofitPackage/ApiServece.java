@@ -19,6 +19,14 @@ public interface ApiServece {
     @GET("/user/friends/{username}")
     Call<StanderResponse> getFriends(@Path("username") String username);
 
+
+    @GET("/user/search/{query}")
+    Call<StanderResponse> searchOnUsers(@Path("query") String query);
+
+    @POST("/user/addFriend")
+    Call<StanderResponse> addFriend(@Body AddFriendModel user);
+
+
 //    @POST("/logout")
 //    Call<LogoutResponse> logout(@Body LogoutUserModel user);
 
