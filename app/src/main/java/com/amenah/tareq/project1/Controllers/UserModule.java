@@ -17,6 +17,8 @@ public class UserModule implements Serializable {
 
 
     public static List<Message> getChatsOf(String friendName) {
+        if (friendsChats == null)
+            return null;
         if (!friendsChats.containsKey(friendName))
             friendsChats.put(friendName, new ArrayList<Message>());
 

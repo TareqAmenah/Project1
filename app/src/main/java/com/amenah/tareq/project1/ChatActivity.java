@@ -26,6 +26,9 @@ import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Image;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Text;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Message;
 import com.amenah.tareq.project1.ConnectionManager.MyTcpSocket;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.ApiServece;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.RetrofitServiceManager;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.StanderResponse;
 import com.amenah.tareq.project1.Controllers.SharedPreferencesConroller;
 import com.amenah.tareq.project1.Controllers.StorageManager;
 import com.amenah.tareq.project1.Controllers.UserModule;
@@ -34,6 +37,10 @@ import com.nbsp.materialfilepicker.MaterialFilePicker;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class ChatActivity extends AppCompatActivity {
@@ -51,6 +58,7 @@ public class ChatActivity extends AppCompatActivity {
     private MyTcpSocket socket;
     private ImageButton mbSendText;
     private EditText metMessage;
+
 
     public static void addMessageToLayout(String friendName) {
 
@@ -77,23 +85,51 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_get_image:
-                checkPermissionsAndOpenImagePicker();
-                return true;
-            case R.id.action_get_file:
-                checkPermissionsAndOpenFilePicker();
-                return true;
-            case R.id.action_delete_chat_history:
-                deleteChatHistory();
-            case R.id.action_log_out:
-                logout();
-            default:
-                // Do nothing
-        }
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_chat);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        return super.onOptionsItemSelected(item);
+        getWindow().setBackgroundDrawableResource(R.mipmap.chat_background);
+
+        mbSendText = findViewById(R.id.btn_send_text);
+        metMessage = findViewById(R.id.input_message);
+        messagesListRecyclerView = findViewById(R.id.message_list_recyclerview);
+
+        receiverName = getIntent().getStringExtra("ReceiverName");
+
+        getSupportActionBar().setTitle(receiverName);
+        getSupportActionBar().setIcon(R.drawable.man);
+        setLastSeen();
+
+        mbSendText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String s = metMessage.getText().toString();
+
+                if (!s.equals("")) {
+                    Message message = new Event_Text(UserModule.getUsername(), receiverName, s);
+                    message.sendMessage();
+                    addMessageToLayout(receiverName);
+
+                }
+
+                metMessage.setText("");
+            }
+        });
+
+        // set the adapter of the recycler view
+        messageList = UserModule.getChatsOf(receiverName);
+        messageListAdapter = new MessageListAdapter(messageList, this);
+        messagesListRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        messagesListRecyclerView.setAdapter(messageListAdapter);
+
+
+        socket = ((MyApp) getApplication()).getSocket();
+
+        isActive = true;
+
     }
 
     private void logout() {
@@ -211,50 +247,24 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_get_image:
+                checkPermissionsAndOpenImagePicker();
+                return true;
+            case R.id.action_get_file:
+                checkPermissionsAndOpenFilePicker();
+                return true;
+            case R.id.action_delete_chat_history:
+                deleteChatHistory();
+                break;
+            case R.id.action_log_out:
+                logout();
+            default:
+                // Do nothing
+        }
 
-        getWindow().setBackgroundDrawableResource(R.mipmap.chat_background);
-
-        mbSendText = findViewById(R.id.btn_send_text);
-        metMessage = findViewById(R.id.input_message);
-        messagesListRecyclerView = findViewById(R.id.message_list_recyclerview);
-
-        receiverName = getIntent().getStringExtra("ReceiverName");
-
-        getSupportActionBar().setTitle(receiverName);
-        getSupportActionBar().setIcon(R.drawable.man);
-
-        mbSendText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String s = metMessage.getText().toString();
-
-                if (!s.equals("")) {
-                    Message message = new Event_Text(UserModule.getUsername(), receiverName, s);
-                    message.sendMessage();
-                    addMessageToLayout(receiverName);
-
-                }
-
-                metMessage.setText("");
-            }
-        });
-
-        // set the adapter of the recycler view
-        messageList = UserModule.getChatsOf(receiverName);
-        messageListAdapter = new MessageListAdapter(messageList, this);
-        messagesListRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        messagesListRecyclerView.setAdapter(messageListAdapter);
-
-
-        socket = ((MyApp) getApplication()).getSocket();
-
-        isActive = true;
-
+        return super.onOptionsItemSelected(item);
     }
 
     private void showToast(String message) {
@@ -281,5 +291,26 @@ public class ChatActivity extends AppCompatActivity {
         isActive = false;
     }
 
+    public void setLastSeen() {
+
+        ApiServece retrofitManager = RetrofitServiceManager.retrofitManager;
+
+        retrofitManager.getLastSeen(receiverName).enqueue(new Callback<StanderResponse>() {
+            @Override
+            public void onResponse(Call<StanderResponse> call, Response<StanderResponse> response) {
+                if (response.body().getStatus()) {
+                    getSupportActionBar().setSubtitle(response.body().getData().getAsString());
+                } else {
+                    showToast(response.body().getErrors().getAsString());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<StanderResponse> call, Throwable t) {
+                showToast("Connection Error!");
+            }
+        });
+
+    }
 
 }

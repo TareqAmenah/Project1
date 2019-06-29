@@ -38,7 +38,7 @@
             android:layout_height="match_parent"
             android:layout_weight="2"
             android:ems="10"
-            android:layout_marginRight="8dp"
+            android:layout_marginEnd="8dp"
             android:background="@drawable/text_field"
             android:hint="Write a message"
             android:inputType="textLongMessage"

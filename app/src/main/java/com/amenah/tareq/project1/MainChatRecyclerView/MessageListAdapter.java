@@ -85,13 +85,23 @@ public class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.
 
             case "BinaryFile":
                 myViewHolder.text.setVisibility(View.GONE);
-                myViewHolder.img.getLayoutParams().height = 128;
-                myViewHolder.img.getLayoutParams().width = 128;
+                myViewHolder.img.getLayoutParams().height = 256;
+                myViewHolder.img.getLayoutParams().width = 256;
 
-                Glide.with(context)
-                        .load(R.drawable.ic_any_file)
-                        .apply(new RequestOptions().centerCrop())
-                        .into(myViewHolder.img);
+                if (messageList.get(i).getExtension().equalsIgnoreCase(".GIF")) {
+                    Glide.with(context)
+                            .load(messageList.get(i).getFilePath())
+                            .apply(new RequestOptions().centerCrop())
+                            .into(myViewHolder.img);
+
+                } else {
+                    myViewHolder.img.getLayoutParams().height = 128;
+                    myViewHolder.img.getLayoutParams().width = 128;
+                    Glide.with(context)
+                            .load(R.drawable.ic_any_file)
+                            .apply(new RequestOptions().centerCrop())
+                            .into(myViewHolder.img);
+                }
 
                 myViewHolder.img.setOnClickListener(new View.OnClickListener() {
                     @Override
