@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                         active = friendsListFragment;
                         return true;
                     case R.id.navigation_games:
-                        fm.beginTransaction().hide(active).show(gamesListFragment).commit();
+                        fm.beginTransaction().hide(active).show(gamesListFragment).commitAllowingStateLoss();
                         active = gamesListFragment;
                         return true;
                 }
