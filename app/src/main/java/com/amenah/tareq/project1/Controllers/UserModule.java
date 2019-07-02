@@ -13,16 +13,24 @@ public class UserModule implements Serializable {
     private static String username;
     private static String accessToken;
     private static List<String> friendsList;
+    private static Map<String, String> friendsSecretKeys;
+    private static String privateKey;
+    private static String publicKey;
     private static Map<String, List<Message>> friendsChats = new HashMap<>();
 
 
     public static List<Message> getChatsOf(String friendName) {
         if (friendsChats == null)
             return null;
-        if (!friendsChats.containsKey(friendName))
-            friendsChats.put(friendName, new ArrayList<Message>());
 
-        return friendsChats.get(friendName);
+//        List<Message> list =  StorageManager.getFriendChat(friendName);
+//        friendsChats.put(friendName,list);
+
+        if (!friendsChats.containsKey(friendName))
+            friendsChats.put(friendName, StorageManager.getFriendChat(friendName));
+
+        List<Message> messageList = friendsChats.get(friendName);
+        return messageList;
 
     }
 
@@ -85,12 +93,16 @@ public class UserModule implements Serializable {
         username = null;
         accessToken = null;
 
-        for (String s : friendsList) {
-            List<Message> list = friendsChats.get(s);
-            if (list != null)
-                list.clear();
+        if (friendsList != null) {
+            for (String s : friendsList) {
+                List<Message> list = friendsChats.get(s);
+                if (list != null)
+                    list.clear();
+            }
         }
+
         friendsChats = null;
+        friendsSecretKeys = null;
         friendsList = null;
 
     }
@@ -99,8 +111,45 @@ public class UserModule implements Serializable {
         username = name;
         accessToken = token;
         friendsList = new ArrayList<>();
+        friendsSecretKeys = new HashMap<>();
+        friendsChats = new HashMap<>();
+    }
+
+    public static void saveUser() {
+
+        UserForSaving userForSaving = new UserForSaving();
+        userForSaving.setUsername(username);
+        userForSaving.setAccessToken(accessToken);
+        userForSaving.setFriendsList(friendsList);
+        userForSaving.setFriendsSecretKeys(friendsSecretKeys);
+        userForSaving.setPrivateKey(privateKey);
+        userForSaving.setPublicKey(publicKey);
+
+        StorageManager.saveUser(userForSaving);
+
+    }
+
+    public static void initializeUserFromMemory() throws noUserInMemoryException {
+
+        UserForSaving userForSaving = StorageManager.getUser();
+        if (userForSaving == null)
+            throw new noUserInMemoryException();
+
+        username = userForSaving.getUsername();
+        accessToken = userForSaving.getAccessToken();
+        friendsSecretKeys = userForSaving.getFriendsSecretKeys();
+        friendsList = userForSaving.getFriendsList();
+        privateKey = userForSaving.getPrivateKey();
+        publicKey = userForSaving.getPublicKey();
+
         friendsChats = new HashMap<>();
 
     }
+
+    public static class noUserInMemoryException extends Exception {
+
+    }
+
+
 
 }

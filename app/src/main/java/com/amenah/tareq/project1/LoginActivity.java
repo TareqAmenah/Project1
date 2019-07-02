@@ -39,6 +39,13 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+        try {
+            UserModule.initializeUserFromMemory();
+            acceptedLogin();
+        } catch (UserModule.noUserInMemoryException e) {
+            showToast("No user in memory!");
+        }
 //        if (checkForCurrentUser()) {
 //            acceptedLogin(SharedPreferencesConroller.receiverName);
 //        }

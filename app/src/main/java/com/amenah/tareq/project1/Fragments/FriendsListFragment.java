@@ -80,7 +80,8 @@ public class FriendsListFragment extends Fragment implements SwipeRefreshLayout.
                     JsonArray jsonArray = (JsonArray) response.body().getData();
                     for (JsonElement jsonElement : jsonArray) {
                         friendsList.add(new ItemUser(jsonElement.getAsString(), "url"));
-                        UserModule.addFriend(jsonElement.getAsString());
+                        String friendName = jsonElement.getAsString();
+                        UserModule.addFriend(friendName);
                     }
                     setFriendsListAdapter(friendsList);
 

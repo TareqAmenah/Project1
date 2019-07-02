@@ -114,7 +114,6 @@ public class ChatActivity extends AppCompatActivity {
                     addMessageToLayout(receiverName);
 
                 }
-
                 metMessage.setText("");
             }
         });

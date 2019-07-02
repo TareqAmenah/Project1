@@ -1,5 +1,6 @@
 package com.amenah.tareq.project1;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -166,16 +167,23 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
-    }
+        switch (item.getItemId()) {
+            case R.id.action_log_out:
+                StorageManager.clearAll();
+                UserModule.clearAll();
+                ((MyApp) getApplication()).getSocket().closeConnection();
+                Toast.makeText(this, "Socket connection closed!", Toast.LENGTH_LONG).show();
 
-    @Override
-    protected void onDestroy() {
-        ((MyApp) getApplication()).getSocket().closeConnection();
-        Toast.makeText(this, "Socket connection closed!", Toast.LENGTH_LONG).show();
-        StorageManager.clearAll();
-        UserModule.clearAll();
-        super.onDestroy();
+                Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+                homeIntent.addCategory(Intent.CATEGORY_HOME);
+                homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(homeIntent);
+                break;
+            default:
+                // Do nothing
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private List<ItemUser> getUsersFromServer(String query) {
@@ -215,4 +223,20 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        UserModule.saveUser();
+        Intent homeIntent = new Intent(Intent.ACTION_MAIN);
+        homeIntent.addCategory(Intent.CATEGORY_HOME);
+        homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(homeIntent);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+    }
 }
