@@ -1,15 +1,24 @@
 package com.amenah.tareq.project1.ConnectionManager.Messages;
 
+import android.util.Base64;
 import android.util.Log;
 
 import com.amenah.tareq.project1.Controllers.UserModule;
+import com.amenah.tareq.project1.Encryption.AESUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 public class Event_Text extends Message {
 
@@ -22,22 +31,59 @@ public class Event_Text extends Message {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
         sentDate = dateFormat.format(date);
-        
+
+        String secretKey = UserModule.getSecretKeyOfFriend(receiver);
+        try {
+            //String encryptedText = Base64.encodeToString(AESUtil.encrypt(text,secretKey),Base64.DEFAULT);
+            String encryptedText = Base64.encodeToString(AESUtil.encrypt(text, secretKey), Base64.DEFAULT);
+            this.encryptedText = encryptedText;
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        }
+
+        saveMessage(receiver); // friend name is the receiver name
+
     }
 
     public Event_Text(JSONObject jsonMessage) {
         try {
             type = jsonMessage.getString("type");
             receiver = UserModule.getUsername();
-            text = jsonMessage.getString("message");
+            encryptedText = jsonMessage.getString("message");
             sentDate = jsonMessage.getString("sentDate");
             sender = jsonMessage.getString("sender");
 
-            saveMessage(sender); // friend name is the sender name
+            //TODO: decrypt the message
+            text = new String(AESUtil.decrypt(Base64.decode(encryptedText, Base64.DEFAULT), UserModule.getSecretKeyOfFriend(sender)));
 
         } catch (JSONException e) {
             e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
         }
+
+        saveMessage(sender); // friend name is the sender name
+
     }
 
     @Override
@@ -46,7 +92,7 @@ public class Event_Text extends Message {
         try {
             json.put("type",type);
             json.put("receiver",receiver);
-            json.put("message",text);
+            json.put("message", encryptedText);
             json.put("sentDate",sentDate);
 
         } catch (JSONException e) {

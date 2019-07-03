@@ -1,6 +1,7 @@
 package com.amenah.tareq.project1.ConnectionManager.Messages;
 
 import com.amenah.tareq.project1.Controllers.UserModule;
+import com.amenah.tareq.project1.Encryption.AESUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,9 +9,16 @@ import org.json.JSONObject;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 public class Event_BinaryFile extends Message {
 
@@ -61,8 +69,26 @@ public class Event_BinaryFile extends Message {
     @Override
     public byte[] getBytes() {
 
-        return readFileToByteArray(filePath);
+        String secretKey = UserModule.getSecretKeyOfFriend(receiver);
+        byte[] fileAsByteArray = readFileToByteArray(filePath);
+        try {
+            byte[] encryptedFile = AESUtil.encrypt(fileAsByteArray, secretKey);
+            return encryptedFile;
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        }
 
+        return new byte[0];
     }
 
 

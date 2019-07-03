@@ -14,10 +14,11 @@ import com.amenah.tareq.project1.ConnectionManager.Constants;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.ApiServece;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.LoginUserModel;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.RetrofitServiceManager;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.SetPublicKeyModel;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.StanderResponse;
-import com.amenah.tareq.project1.Controllers.NoCurrentUserExistsException;
-import com.amenah.tareq.project1.Controllers.SharedPreferencesConroller;
 import com.amenah.tareq.project1.Controllers.UserModule;
+import com.amenah.tareq.project1.Encryption.RSAKeysGenerer;
+import com.amenah.tareq.project1.Encryption.RSAUtil;
 import com.google.gson.JsonElement;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -46,10 +47,6 @@ public class LoginActivity extends AppCompatActivity {
         } catch (UserModule.noUserInMemoryException e) {
             showToast("No user in memory!");
         }
-//        if (checkForCurrentUser()) {
-//            acceptedLogin(SharedPreferencesConroller.receiverName);
-//        }
-
 
         setContentView(R.layout.activity_login);
 
@@ -68,17 +65,6 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    private boolean checkForCurrentUser() {
-
-        try {
-            SharedPreferencesConroller.getCurrentUser(this);
-            return true;
-        } catch (NoCurrentUserExistsException e) {
-            e.printStackTrace();
-            return false;
-        }
-
-    }
 
     public void login() {
 
@@ -94,7 +80,7 @@ public class LoginActivity extends AppCompatActivity {
 
             LoginUserModel user = new LoginUserModel(username,password);
 
-            ApiServece retrofitManager = RetrofitServiceManager.retrofitManager;
+        final ApiServece retrofitManager = RetrofitServiceManager.retrofitManager;
 
             /* ********************* reference to static will bind the activity from destroy? *********************************************************** */
         //ApiService service = RetrofitServiceManager.retrofitManager;
@@ -112,13 +98,36 @@ public class LoginActivity extends AppCompatActivity {
                         String token = json.getAsString();
                         UserModule.initializeUser(username, token);
 
-                        // SharedPreferencesConroller.saveCurrentUser(LoginActivity.this, receiverName);
-                        acceptedLogin();
+                        //Generate and set keys for RSA
+                        RSAKeysGenerer rsaKeysGenerer = new RSAKeysGenerer(2048);
+                        UserModule.setPrivateKey(rsaKeysGenerer.getPrivateKey());
+                        UserModule.setPublicKey(rsaKeysGenerer.getPublicKey());
+                        Log.v("*****************", UserModule.getPrivateKey());
+                        Log.v("*****************", UserModule.getPublicKey());
+
+                        String xmlPublicKey = RSAUtil.RSAPublicKeyToXML(UserModule.getPublicKey());
+                        Log.v("*****************", xmlPublicKey);
+                        SetPublicKeyModel setPublicKeyModel = new SetPublicKeyModel(UserModule.getUsername(), xmlPublicKey);
+
+                        retrofitManager.setPublicKey(setPublicKeyModel).enqueue(new Callback<StanderResponse>() {
+                            @Override
+                            public void onResponse(Call<StanderResponse> call, Response<StanderResponse> response) {
+                                if (response.body().getStatus()) {
+                                    showToast("Setting public key done!");
+                                    acceptedLogin();
+                                } else
+                                    showToast("Error in setting public key!");
+                            }
+
+                            @Override
+                            public void onFailure(Call<StanderResponse> call, Throwable t) {
+                                showToast("Connection Error!");
+                            }
+                        });
 
                     } else {
                         showToast(response.body().getErrors().toString());
                     }
-
                 }
 
                 @Override
@@ -130,7 +139,6 @@ public class LoginActivity extends AppCompatActivity {
 
                 }
             });
-
 
     }
 
@@ -158,8 +166,6 @@ public class LoginActivity extends AppCompatActivity {
         }
         //TODO test this condition
         if (myApp.getSocket().isConnected()) {
-
-            //SharedPreferencesConroller.saveCurrentUser(this, receiverName);
 
             showToast("Welcome " + UserModule.getUsername() + " ^_^");
             Intent goToChatActivity = new Intent(LoginActivity.this, MainActivity.class);

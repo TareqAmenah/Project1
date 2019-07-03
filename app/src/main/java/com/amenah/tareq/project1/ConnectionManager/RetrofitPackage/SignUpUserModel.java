@@ -5,6 +5,8 @@ public class SignUpUserModel {
     private String username;
     private String password;
     private String email;
+    private String platform = "android";
+
 
     public SignUpUserModel(String username, String password, String email) {
         this.username = username;
@@ -15,6 +17,10 @@ public class SignUpUserModel {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
     }
 
     public void setPassword(String password) {

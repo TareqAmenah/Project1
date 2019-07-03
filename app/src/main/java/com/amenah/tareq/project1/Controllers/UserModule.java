@@ -1,5 +1,7 @@
 package com.amenah.tareq.project1.Controllers;
 
+import android.util.Log;
+
 import com.amenah.tareq.project1.ConnectionManager.Messages.Message;
 
 import java.io.Serializable;
@@ -18,6 +20,19 @@ public class UserModule implements Serializable {
     private static String publicKey;
     private static Map<String, List<Message>> friendsChats = new HashMap<>();
 
+
+    public static void setSecretKeyForFriend(String friendName, String secretKey) {
+        if (friendsSecretKeys == null)
+            friendsSecretKeys = new HashMap<>();
+
+        Log.v("*****************", "Secret key of: " + friendName + " : " + secretKey);
+
+        friendsSecretKeys.put(friendName, secretKey);
+    }
+
+    public static String getSecretKeyOfFriend(String friendName) {
+        return friendsSecretKeys.get(friendName);
+    }
 
     public static List<Message> getChatsOf(String friendName) {
         if (friendsChats == null)
@@ -144,6 +159,22 @@ public class UserModule implements Serializable {
 
         friendsChats = new HashMap<>();
 
+    }
+
+    public static String getPrivateKey() {
+        return privateKey;
+    }
+
+    public static void setPrivateKey(String privateKey) {
+        UserModule.privateKey = privateKey;
+    }
+
+    public static String getPublicKey() {
+        return publicKey;
+    }
+
+    public static void setPublicKey(String publicKey) {
+        UserModule.publicKey = publicKey;
     }
 
     public static class noUserInMemoryException extends Exception {

@@ -35,6 +35,12 @@ public interface ApiServece {
     @GET("/user/lastSeen/{username}")
     Call<StanderResponse> getLastSeen(@Path("username") String username);
 
+    @POST("/user/setPublicKey")
+    Call<StanderResponse> setPublicKey(@Body SetPublicKeyModel publicKeyModel);
+
+    @GET("/user/getPublicKeys/{username}")
+    Call<StanderResponse> getPublicKeys(@Path("username") String username);
+
 
 
 //    @POST("/logout")

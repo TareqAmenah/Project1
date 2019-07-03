@@ -14,6 +14,7 @@ public abstract class Message implements Serializable {
     protected String receiver;
     protected String sender;
     protected String text;
+    protected String encryptedText;
     protected String extension;
     protected String filePath;
     protected String sentDate;
@@ -57,7 +58,7 @@ public abstract class Message implements Serializable {
     public void sendMessage(){
 
         System.out.println("Sending message ....");
-        if (this.type == "authentication") {
+        if (this.type == "authentication" || this.type == "updateSecretKey") {
             try {
                 MyTcpSocket.sendJson(this.getJson());
             } catch (SendInSocketException e) {
@@ -79,7 +80,6 @@ public abstract class Message implements Serializable {
         }else{
             try {
                 MyTcpSocket.sendJson(this.getJson());
-                saveMessage(receiver); // friend name is the receiver name
             } catch (SendInSocketException e) {
                 e.printStackTrace();
             }

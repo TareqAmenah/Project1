@@ -19,6 +19,7 @@ public class Event_Authentication extends Message {
         try {
             json.put("type",type);
             json.put("AccessToken", UserModule.getAccessToken());
+            json.put("platform", "android");
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,16 +18,26 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amenah.tareq.project1.ChatActivity;
+import com.amenah.tareq.project1.ConnectionManager.Messages.UpdateSecretKey;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.AddFriendModel;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.ApiServece;
+import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.BlockFriendModel;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.DeleteFriendModel;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.RetrofitServiceManager;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.StanderResponse;
-import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.BlockFriendModel;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.UnBlockFriendModel;
 import com.amenah.tareq.project1.Controllers.UserModule;
+import com.amenah.tareq.project1.Encryption.AESUtil;
+import com.amenah.tareq.project1.Encryption.RSAUtil;
 import com.amenah.tareq.project1.R;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.security.GeneralSecurityException;
+import java.security.PublicKey;
 import java.util.List;
 
 import retrofit2.Call;
@@ -68,14 +79,72 @@ public class FriendsListAdapter extends RecyclerView.Adapter<FriendsListAdapter.
                 @Override
                 public void onClick(View view) {
                     AddFriendModel addFriendModel = new AddFriendModel(UserModule.getUsername(), username);
-                    ApiServece retrofitManager = RetrofitServiceManager.retrofitManager;
+                    final ApiServece retrofitManager = RetrofitServiceManager.retrofitManager;
                     retrofitManager.addFriend(addFriendModel).enqueue(new Callback<StanderResponse>() {
                         @Override
                         public void onResponse(Call<StanderResponse> call, Response<StanderResponse> response) {
                             if (response.body().getStatus()) {
-                                Intent intent = new Intent(context, ChatActivity.class);
-                                intent.putExtra("ReceiverName", username);
-                                context.startActivity(intent);
+
+                                //Generate secret key
+                                retrofitManager.getPublicKeys(username).enqueue(new Callback<StanderResponse>() {
+                                    @Override
+                                    public void onResponse(Call<StanderResponse> call, Response<StanderResponse> response) {
+                                        if (response.body().getStatus()) {
+                                            // get public key for each platform
+                                            String AESSecretKey = AESUtil.generateSecretKey();
+                                            JsonArray jsonArray = (JsonArray) response.body().getData();
+                                            for (JsonElement jsonElement : jsonArray) {
+                                                try {
+                                                    JSONObject jsonObject = new JSONObject(jsonElement.toString());
+                                                    String platform = jsonObject.getString("platform");
+
+                                                    //this public key is in xml format
+                                                    String publicKeyXML = jsonObject.getString("publicKey");
+                                                    Log.v("***** my friend PK:", publicKeyXML);
+                                                    PublicKey publickey = RSAUtil.RSAPublicKeyFromXML(publicKeyXML);
+                                                    String encryptedSecretKey = RSAUtil.encrypt(AESSecretKey, publickey);
+
+                                                    //send update secret key message to the friend
+                                                    new UpdateSecretKey(username, platform, encryptedSecretKey).sendMessage();
+
+                                                    showToast(AESSecretKey);
+                                                    Log.v("********** secret key: ", AESSecretKey);
+
+                                                    //save friend key
+                                                    UserModule.setSecretKeyForFriend(username, AESSecretKey);
+
+                                                } catch (JSONException e) {
+                                                    e.printStackTrace();
+                                                } catch (GeneralSecurityException e) {
+                                                    e.printStackTrace();
+                                                }
+
+//                                                //send the secret key to my widows platform
+//                                                String to = UserModule.getUsername();
+//                                                String platform = "windows";
+//                                                try {
+//                                                    String encryptedSecretKey = RSAUtil.encrypt(AESSecretKey,UserModule.getPublicKey());
+//                                                    new UpdateSecretKey(to,platform,encryptedSecretKey);
+//                                                } catch (GeneralSecurityException e) {
+//                                                    e.printStackTrace();
+//                                                }
+
+                                                Intent intent = new Intent(context, ChatActivity.class);
+                                                intent.putExtra("ReceiverName", username);
+                                                context.startActivity(intent);
+
+                                            }
+                                        } else {
+                                            showToast(response.body().getErrors().toString());
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(Call<StanderResponse> call, Throwable t) {
+                                        showToast("Connection Error: get public keys");
+                                    }
+                                });
+
                             } else {
                                 showToast(response.body().getErrors().toString());
                             }
@@ -83,6 +152,7 @@ public class FriendsListAdapter extends RecyclerView.Adapter<FriendsListAdapter.
 
                         @Override
                         public void onFailure(Call<StanderResponse> call, Throwable t) {
+                            showToast("Connection Error: add friend");
                         }
                     });
                 }

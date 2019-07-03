@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.amenah.tareq.project1.ConnectionManager.Messages.Message;
+import com.amenah.tareq.project1.Encryption.AESUtil;
 import com.amenah.tareq.project1.MyCustomPair;
 
 import java.io.File;
@@ -14,12 +15,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 public class StorageManager {
 
@@ -102,6 +110,26 @@ public class StorageManager {
 
         String path = IMAGE_FOLDER_NAME;
 
+        //decrypt the image
+        String secretKey = UserModule.getSecretKeyOfFriend(sender);
+        try {
+            byte[] decryptedImage = AESUtil.decrypt(fileBytes, secretKey);
+            return saveFile(decryptedImage, sender, ext, path);
+
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        }
+
         return saveFile(fileBytes, sender, ext, path);
 
     }
@@ -109,6 +137,26 @@ public class StorageManager {
     public static String saveBinaryFile(byte[] fileBytes, String sender, String ext) {
 
         String path = BINARY_FILE_FOLDER_NAME;
+
+        //decrypt the file
+        String secretKey = UserModule.getSecretKeyOfFriend(sender);
+        try {
+            byte[] decryptedFile = AESUtil.decrypt(fileBytes, secretKey);
+            return saveFile(decryptedFile, sender, ext, path);
+
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        }
 
         return saveFile(fileBytes, sender, ext, path);
 

@@ -4,6 +4,7 @@ public class LoginUserModel {
 
     private String username;
     private String password;
+    private String platform = "android";
 
     public LoginUserModel(String username, String password) {
         this.username = username;
@@ -18,6 +19,9 @@ public class LoginUserModel {
         this.password = password;
     }
 
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
     public String getUsername() {
         return username;
     }

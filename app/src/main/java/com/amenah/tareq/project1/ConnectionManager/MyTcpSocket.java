@@ -6,6 +6,7 @@ import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Authentication
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_BinaryFile;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Image;
 import com.amenah.tareq.project1.ConnectionManager.Messages.Event_Text;
+import com.amenah.tareq.project1.ConnectionManager.Messages.UpdateSecretKey;
 import com.amenah.tareq.project1.Controllers.StorageManager;
 
 import org.json.JSONException;
@@ -190,8 +191,7 @@ public class MyTcpSocket extends Thread {
                                     byte[] imageBytes = new byte[imageSizeInt];
                                     reader.read(imageBytes,0,imageSizeInt);
 
-                                    String imagePath = StorageManager.saveImage(imageBytes,
-                                            jsonMessage.getString("sender"), jsonMessage.getString("extension"));
+                                    String imagePath = StorageManager.saveImage(imageBytes, jsonMessage.getString("sender"), jsonMessage.getString("extension"));
 
                                     new Event_Image(jsonMessage, imagePath);
 
@@ -211,6 +211,10 @@ public class MyTcpSocket extends Thread {
 
                                     new Event_BinaryFile(jsonMessage, filePath);
 
+                                    break;
+
+                                case "updateSecretKey":
+                                    new UpdateSecretKey(jsonMessage);
                                     break;
 
                                 default:

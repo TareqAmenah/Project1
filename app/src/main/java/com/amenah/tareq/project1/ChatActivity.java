@@ -29,7 +29,6 @@ import com.amenah.tareq.project1.ConnectionManager.MyTcpSocket;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.ApiServece;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.RetrofitServiceManager;
 import com.amenah.tareq.project1.ConnectionManager.RetrofitPackage.StanderResponse;
-import com.amenah.tareq.project1.Controllers.SharedPreferencesConroller;
 import com.amenah.tareq.project1.Controllers.StorageManager;
 import com.amenah.tareq.project1.Controllers.UserModule;
 import com.amenah.tareq.project1.MainChatRecyclerView.MessageListAdapter;
@@ -132,7 +131,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        SharedPreferencesConroller.deleteCurrentUser(this);
         StorageManager.deleteAllFriendsChat();
         Intent intent = new Intent(this, LoginActivity.class);
         startActivity(intent);

@@ -97,8 +97,9 @@ public class RegisterActivity extends AppCompatActivity {
 
                 if (response.body().getStatus()) {
 
-                    String token = response.body().getData().toString();
-                    acceptedRegister(username, token);
+//                    String token = response.body().getData().toString();
+//                    acceptedRegister(username, token);
+                    showToast("Register accepted");
 
                 } else {
                     showToast(response.body().getErrors().toString());

@@ -4,14 +4,22 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.amenah.tareq.project1.Controllers.UserModule;
+import com.amenah.tareq.project1.Encryption.AESUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 public class Event_Image extends Message {
 
@@ -64,7 +72,26 @@ public class Event_Image extends Message {
     public byte[] getBytes() {
 
         Bitmap bitMap = getBitmap(filePath, 1);
-        return getBytesFromBitmap(bitMap);
+        byte[] imageAsByteArray = getBytesFromBitmap(bitMap);
+        String secretKey = UserModule.getSecretKeyOfFriend(receiver);
+        try {
+            byte[] encryptedImage = AESUtil.encrypt(imageAsByteArray, secretKey);
+            return encryptedImage;
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        }
+
+        return new byte[0];
     }
 
     // convert from bitmap to byte array
